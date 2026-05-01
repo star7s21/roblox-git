@@ -42,11 +42,15 @@ Players.PlayerAdded:Connect(function(player)
 		local slots = base:WaitForChild("Base")
 
 		for _, slot in ipairs(slots:GetChildren()) do
-			if not slot:IsA("BasePart") then continue end
+			if not slot:IsA("Model") then continue end
+
+			local touchPart = slot:FindFirstChild("TouchArea")
+			local placePart = slot:FindFirstChild("ItemArea")
+			if not touchPart or not placePart then continue end
 
 			local debounce = false
 
-			slot.Touched:Connect(function(hit)
+			touchPart.Touched:Connect(function(hit)
 				if debounce then return end
 
 				local character = hit.Parent
@@ -56,7 +60,7 @@ Players.PlayerAdded:Connect(function(player)
 				-- =========================
 				-- 回収処理
 				-- =========================
-				local stored = slot:FindFirstChild("StoredItem")
+				local stored = placePart:FindFirstChild("StoredItem")
 
 				if stored and stored.Value then
 
@@ -139,7 +143,7 @@ Players.PlayerAdded:Connect(function(player)
 				local typeValue = player:FindFirstChild("TreasureType")
 				if not value or not typeValue then return end
 
-				if slot:FindFirstChild("StoredItem") then return end
+				if placePart:FindFirstChild("StoredItem") then return end
 
 				debounce = true
 
@@ -154,9 +158,9 @@ Players.PlayerAdded:Connect(function(player)
 				item.Parent = base
 
 				if item.PrimaryPart then
-					item:PivotTo(slot.CFrame)
+					item:PivotTo(placePart.CFrame)
 				else
-					item:MoveTo(slot.Position)
+					item:MoveTo(placePart.Position)
 				end
 
 				item:SetAttribute("Value", value.Value)
@@ -164,7 +168,7 @@ Players.PlayerAdded:Connect(function(player)
 				local storedItem = Instance.new("ObjectValue")
 				storedItem.Name = "StoredItem"
 				storedItem.Value = item
-				storedItem.Parent = slot
+				storedItem.Parent = placePart
 
 				startGenerating(player, item)
 

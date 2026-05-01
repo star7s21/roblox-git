@@ -25,7 +25,9 @@ local function collectBaseData(base)
 	local result = {}
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
-		local stored = slot:FindFirstChild("StoredItem")
+		local placePart = slot:FindFirstChild("ItemArea")
+		if not placePart then continue end
+		local stored = placePart:FindFirstChild("StoredItem")
 
 		if stored and stored.Value then
 			local item = stored.Value
@@ -58,16 +60,18 @@ local function spawnItem(player, base, data)
 	item.Parent = base
 	item:SetAttribute("Value", data.value or 0)
 
+	local placePart = slot:FindFirstChild("ItemArea")
+	if not placePart then return end
 	if item.PrimaryPart then
-		item:PivotTo(slot.CFrame)
+		item:PivotTo(placePart.CFrame)
 	else
-		item:MoveTo(slot.Position)
+		item:MoveTo(placePart.Position)
 	end
 
 	local stored = Instance.new("ObjectValue")
 	stored.Name = "StoredItem"
 	stored.Value = item
-	stored.Parent = slot
+	stored.Parent = placePart
 end
 
 -- =========================
