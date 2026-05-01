@@ -56,7 +56,7 @@ end
 
 -- 無限ループ
 while true do
-	-- spawnWave()
+	spawnWave()
 
 	-- ランダム間隔
 	task.wait(math.random(minWait, maxWait))
