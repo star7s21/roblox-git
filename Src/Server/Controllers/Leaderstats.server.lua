@@ -4,9 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local dataStore = DataStoreService:GetDataStore("PlayerData")
 
--- =========================
 -- Base待機
--- =========================
 local function waitForBase(player)
 	while true do
 		local base = workspace:FindFirstChild(player.Name .. "_Base")
@@ -17,25 +15,19 @@ local function waitForBase(player)
 	end
 end
 
--- =========================
--- 保存用データ取得
--- =========================
+-- スナップショット
 local function collectBaseData(base)
-
 	local result = {}
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
 		local placePart = slot:FindFirstChild("ItemArea")
-		if not placePart then continue end
-		local stored = placePart:FindFirstChild("StoredItem")
+		local stored = placePart and placePart:FindFirstChild("StoredItem")
 
-		if stored and stored.Value then
-			local item = stored.Value
-
+		if stored and stored.Value and stored.Value.Parent then
 			table.insert(result, {
 				slot = slot.Name,
-				type = item.Name,
-				value = item:GetAttribute("Value") or 0
+				type = stored.Value.Name,
+				value = stored.Value:GetAttribute("Value") or 0
 			})
 		end
 	end
@@ -43,25 +35,23 @@ local function collectBaseData(base)
 	return result
 end
 
--- =========================
--- アイテム復元
--- =========================
-local function spawnItem(player, base, data)
-
-	local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
+-- 復元
+local function spawnItem(base, data)
+	local folder = ReplicatedStorage:WaitForChild("Treasures")
 
 	local slot = base.Base:FindFirstChild(data.slot)
 	if not slot then return end
 
-	local template = treasureFolder:FindFirstChild(data.type)
+	local placePart = slot:FindFirstChild("ItemArea")
+	if not placePart then return end
+
+	local template = folder:FindFirstChild(data.type)
 	if not template then return end
 
 	local item = template:Clone()
 	item.Parent = base
-	item:SetAttribute("Value", data.value or 0)
+	item:SetAttribute("Value", data.value)
 
-	local placePart = slot:FindFirstChild("ItemArea")
-	if not placePart then return end
 	if item.PrimaryPart then
 		item:PivotTo(placePart.CFrame)
 	else
@@ -74,115 +64,81 @@ local function spawnItem(player, base, data)
 	stored.Parent = placePart
 end
 
--- =========================
 -- Player
--- =========================
 Players.PlayerAdded:Connect(function(player)
 
-	-- leaderstats
-	local leaderstats = Instance.new("Folder")
+	local leaderstats = Instance.new("Folder", player)
 	leaderstats.Name = "leaderstats"
-	leaderstats.Parent = player
 
-	local coins = Instance.new("IntValue")
+	local coins = Instance.new("IntValue", leaderstats)
 	coins.Name = "Coins"
-	coins.Parent = leaderstats
 
-	local speed = Instance.new("IntValue")
+	local speed = Instance.new("IntValue", leaderstats)
 	speed.Name = "Speed"
-	speed.Parent = leaderstats
 
-	local upgradeCost = Instance.new("IntValue")
+	local upgradeCost = Instance.new("IntValue", player)
 	upgradeCost.Name = "UpgradeCost"
-	upgradeCost.Parent = player
 
-	-- =========================
-	-- LOAD
-	-- =========================
 	local data
-	local success = pcall(function()
-		data = dataStore:GetAsync(tostring(player.UserId))
+	pcall(function()
+		data = dataStore:GetAsync(player.UserId)
 	end)
 
-	-- 必要な時にリセット！→true
-	local DEV_RESET = false
-	if DEV_RESET then
-		print("DEV RESET:", player.Name)
-		pcall(function()
-			dataStore:RemoveAsync(tostring(player.UserId))
-		end)
-		data = nil
-	end
-
-	if success and data then
+	if data then
 		coins.Value = data.Coins or 0
 		speed.Value = data.Speed or 16
 		upgradeCost.Value = data.UpgradeCost or 50
-	else
-		coins.Value = 0
-		speed.Value = 16
-		upgradeCost.Value = 50
 	end
 
-	-- =========================
-	-- CHARACTER
-	-- =========================
-	player.CharacterAdded:Connect(function(char)
+	-- 復元（1回のみ）
+	task.spawn(function()
 
-		local humanoid = char:WaitForChild("Humanoid")
 		local base = waitForBase(player)
 
-		-- スピード同期
-		humanoid.WalkSpeed = speed.Value
+		-- クリア
+		for _, slot in ipairs(base.Base:GetChildren()) do
+			local p = slot:FindFirstChild("ItemArea")
+			local s = p and p:FindFirstChild("StoredItem")
+			if s then
+				if s.Value then s.Value:Destroy() end
+				s:Destroy()
+			end
+		end
 
-		speed:GetPropertyChangedSignal("Value"):Connect(function()
-			humanoid.WalkSpeed = speed.Value
-		end)
-
-		-- =========================
 		-- 復元
-		-- =========================
 		if data and data.BaseItems then
 			for _, item in ipairs(data.BaseItems) do
-				spawnItem(player, base, item)
+				spawnItem(base, item)
 			end
 		end
 	end)
 end)
 
--- =========================
 -- SAVE
--- =========================
-local function savePlayer(player)
+local function save(player)
 
 	local base = workspace:FindFirstChild(player.Name .. "_Base")
 	local leaderstats = player:FindFirstChild("leaderstats")
 
 	if not base or not leaderstats then return end
 
-	local dataToSave = {
+	local data = {
 		Coins = leaderstats.Coins.Value,
 		Speed = leaderstats.Speed.Value,
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 		BaseItems = collectBaseData(base)
 	}
 
-	local success, err = pcall(function()
-		dataStore:SetAsync(tostring(player.UserId), dataToSave)
+	pcall(function()
+		dataStore:SetAsync(player.UserId, data)
 	end)
-
-	if success then
-		print("SAVE OK:", player.Name)
-	else
-		warn("SAVE FAILED:", err)
-	end
 end
 
-Players.PlayerRemoving:Connect(savePlayer)
+Players.PlayerRemoving:Connect(save)
 
 game:BindToClose(function()
 	for _, p in ipairs(Players:GetPlayers()) do
-		savePlayer(p)
+		save(p)
 	end
 	task.wait(2)
 end)
