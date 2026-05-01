@@ -1,0 +1,18 @@
+{
+  "name": "RobloxGame",
+  "tree": {
+    "$className": "DataModel",
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "Src/Server"
+      }
+    },
+
+    "StarterGui": {
+      "Client": {
+        "$path": "Src/Client"
+      }
+    }
+  }
+}

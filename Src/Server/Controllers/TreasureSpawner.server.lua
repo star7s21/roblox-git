@@ -1,0 +1,113 @@
+local configModule = require(script.Parent.Parent.Services.TreasureConfig)
+local config = configModule.Types
+
+local TreasureModule = require(script.Parent.Parent.Services.Treasure)
+local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
+
+-- ランダム
+local function getRandomTreasure(level)
+	local weighted = {}
+
+	for _, t in ipairs(config) do
+		local weight = t.chance
+
+		if t.name == "Rare" then
+			weight += level * 5
+		elseif t.name == "Epic" then
+			weight += level * 3
+		elseif t.name == "Legendary" then
+			weight += level * 2
+		end
+
+		table.insert(weighted, {data = t, weight = weight})
+	end
+
+	local total = 0
+	for _, w in ipairs(weighted) do
+		total += w.weight
+	end
+
+	local rand = math.random() * total
+	local sum = 0
+
+	for _, w in ipairs(weighted) do
+		sum += w.weight
+		if rand <= sum then
+			return w.data
+		end
+	end
+end
+
+-- スポーン
+local function spawnTreasure(position, level)
+	local t = getRandomTreasure(level)
+
+	local template = treasureFolder:FindFirstChild(t.model)
+	local treasure = template:Clone()
+	treasure.Parent = workspace
+
+	-- PrimaryPart保険
+	if not treasure.PrimaryPart then
+		local root = treasure:FindFirstChild("HumanoidRootPart") 
+			or treasure:FindFirstChildWhichIsA("BasePart")
+		if root then
+			treasure.PrimaryPart = root
+		end
+	end
+
+	if treasure.PrimaryPart then
+		treasure:PivotTo(CFrame.new(position))
+	end
+
+	-- 色
+	for _, part in ipairs(treasure:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.Color = t.color
+		end
+	end
+
+	-- コイン値
+	local value = Instance.new("IntValue")
+	value.Name = "CoinValue"
+	value.Value = t.coins
+	value.Parent = treasure
+
+	-- 名前表示
+	if treasure.PrimaryPart then
+		local billboard = Instance.new("BillboardGui")
+		billboard.Size = UDim2.new(0, 60, 0, 20)
+		billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Parent = treasure.PrimaryPart
+
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.Text = t.name
+		text.TextColor3 = t.color
+		text.TextStrokeTransparency = 0
+		text.TextStrokeColor3 = Color3.new(0,0,0)
+		text.Font = Enum.Font.GothamBold
+		text.TextScaled = true
+		text.TextWrapped = false
+		text.Parent = billboard
+	end
+
+	TreasureModule.setupTreasure(treasure)
+end
+
+-- スポーン
+for level = 1, 7 do
+	local area = workspace:WaitForChild("Level"..level)
+
+	local size = area.Size
+	local pos = area.Position
+
+	for i = 1, 10 do
+		local x = pos.X + math.random(-size.X/2, size.X/2)
+		local z = pos.Z + math.random(-size.Z/2, size.Z/2)
+		local y = pos.Y + size.Y/2 + 3
+
+		spawnTreasure(Vector3.new(x, y, z), level)
+	end
+end
