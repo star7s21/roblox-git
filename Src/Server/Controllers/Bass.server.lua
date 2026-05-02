@@ -7,10 +7,45 @@ local baseTemplate = ServerStorage:WaitForChild("BaseModel")
 local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 
 -- =========================
+-- スロット管理
+-- =========================
+local SPACING = 100
+local MAX_SLOTS = 10
+
+local used = {}
+local generators = {}
+
+local function assignSlot(player)
+	for i = 1, MAX_SLOTS do
+		if not used[i] then
+			used[i] = player.UserId
+
+			local offsetIndex = i - 1
+			local direction = (offsetIndex % 2 == 0) and 1 or -1
+			local step = math.ceil(offsetIndex / 2)
+
+			local x = step * SPACING * direction
+			return Vector3.new(x, 10, 0), i
+		end
+	end
+
+	warn("Server full!")
+	return nil, nil
+end
+
+local function releaseSlot(player)
+	for i, id in pairs(used) do
+		if id == player.UserId then
+			used[i] = nil
+		end
+	end
+end
+
+-- =========================
 -- 状態リセット
 -- =========================
 local function clearTreasure(player, character)
-	for _, name in ipairs({"HasTreasure", "TreasureValue", "TreasureType"}) do
+	for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType"}) do
 		local v = player:FindFirstChild(name)
 		if v then v:Destroy() end
 	end
@@ -22,40 +57,7 @@ local function clearTreasure(player, character)
 end
 
 -- =========================
--- ベースクリア
--- =========================
-local function clearBase(base)
-	for _, slot in ipairs(base.Base:GetChildren()) do
-		local placePart = slot:FindFirstChild("ItemArea")
-		if placePart then
-			local stored = placePart:FindFirstChild("StoredItem")
-			if stored then
-				if stored.Value then
-					stored.Value:Destroy()
-				end
-				stored:Destroy()
-			end
-		end
-	end
-end
-
--- =========================
--- Base生成
--- =========================
-local function createBase(player)
-	local old = workspace:FindFirstChild(player.Name .. "_Base")
-	if old then old:Destroy() end
-
-	local base = baseTemplate:Clone()
-	base.Name = player.Name .. "_Base"
-	base.Parent = workspace
-	base:PivotTo(goal.CFrame * CFrame.new(0, 10, 0))
-
-	return base
-end
-
--- =========================
--- スピード適用（重要）
+-- スピード適用
 -- =========================
 local function applySpeed(player, character)
 	local humanoid = character:WaitForChild("Humanoid")
@@ -64,14 +66,14 @@ local function applySpeed(player, character)
 	humanoid.WalkSpeed = speed.Value
 
 	speed:GetPropertyChangedSignal("Value"):Connect(function()
-		if humanoid and humanoid.Parent then
+		if humanoid.Parent then
 			humanoid.WalkSpeed = speed.Value
 		end
 	end)
 end
 
 -- =========================
--- コイン生成
+-- コイン生成（安全版）
 -- =========================
 local function startGenerating(player, item)
 	local alive = true
@@ -80,11 +82,11 @@ local function startGenerating(player, item)
 		while alive and item and item.Parent do
 			task.wait(5)
 
-			local value = item:GetAttribute("Value")
 			local coins = player:FindFirstChild("leaderstats")
 				and player.leaderstats:FindFirstChild("Coins")
 
-			if value and coins then
+			if coins then
+				local value = item:GetAttribute("Value") or 0
 				coins.Value += value
 			end
 		end
@@ -111,11 +113,9 @@ local function setupSlot(player, base, slot)
 	end
 
 	prompt.HoldDuration = 0
-
 	local debounce = false
-	local stopCoinGen = nil
 
-	-- UI
+	-- UI更新
 	task.spawn(function()
 		while base.Parent do
 			task.wait(0.2)
@@ -140,10 +140,9 @@ local function setupSlot(player, base, slot)
 		end
 	end)
 
-	-- 触発
+	-- 処理
 	prompt.Triggered:Connect(function(triggerPlayer)
-		if triggerPlayer ~= player then return end
-		if debounce then return end
+		if triggerPlayer ~= player or debounce then return end
 		debounce = true
 
 		local character = player.Character
@@ -152,9 +151,7 @@ local function setupSlot(player, base, slot)
 		local stored = placePart:FindFirstChild("StoredItem")
 		local hasTreasure = player:FindFirstChild("HasTreasure")
 
-		-- =========================
 		-- 回収
-		-- =========================
 		if stored and stored.Value and not hasTreasure then
 
 			local item = stored.Value
@@ -162,15 +159,13 @@ local function setupSlot(player, base, slot)
 
 			Instance.new("BoolValue", player).Name = "HasTreasure"
 
-			local value = Instance.new("IntValue")
+			local value = Instance.new("IntValue", player)
 			value.Name = "TreasureValue"
 			value.Value = item:GetAttribute("Value") or 0
-			value.Parent = player
 
-			local typeValue = Instance.new("StringValue")
+			local typeValue = Instance.new("StringValue", player)
 			typeValue.Name = "TreasureType"
 			typeValue.Value = item.Name
-			typeValue.Parent = player
 
 			local hrp = character:FindFirstChild("HumanoidRootPart")
 
@@ -189,12 +184,10 @@ local function setupSlot(player, base, slot)
 						end
 					end
 
-					if not clone.PrimaryPart then
-						clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
-					end
+					clone.PrimaryPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
 
 					if clone.PrimaryPart then
-						clone:PivotTo(hrp.CFrame * CFrame.new(0, 2, -2))
+						clone:PivotTo(hrp.CFrame * CFrame.new(0,2,-2))
 
 						local weld = Instance.new("WeldConstraint")
 						weld.Part0 = clone.PrimaryPart
@@ -207,9 +200,7 @@ local function setupSlot(player, base, slot)
 			item:Destroy()
 			stored:Destroy()
 
-		-- =========================
 		-- 設置
-		-- =========================
 		elseif hasTreasure and (not stored or not stored.Value) then
 
 			local value = player:FindFirstChild("TreasureValue")
@@ -229,21 +220,50 @@ local function setupSlot(player, base, slot)
 				item:MoveTo(placePart.Position)
 			end
 
-			local storedItem = Instance.new("ObjectValue")
+			local storedItem = Instance.new("ObjectValue", placePart)
 			storedItem.Name = "StoredItem"
 			storedItem.Value = item
-			storedItem.Parent = placePart
 
-			if stopCoinGen then stopCoinGen() end
-			stopCoinGen = startGenerating(player, item)
+			-- コイン生成管理
+			if generators[player] then
+				generators[player]()
+			end
+			generators[player] = startGenerating(player, item)
 
 			clearTreasure(player, character)
 		end
 
-		task.delay(0.2, function()
-			debounce = false
-		end)
+		debounce = false
 	end)
+end
+
+-- =========================
+-- Base生成
+-- =========================
+local function createBase(player)
+
+	local old = workspace:FindFirstChild(player.Name .. "_Base")
+	if old then old:Destroy() end
+
+	local base = baseTemplate:Clone()
+	base.Name = player.Name .. "_Base"
+	base.Parent = workspace
+
+	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
+
+	local pos, slotIndex = assignSlot(player)
+	if not pos then
+		player:Kick("Server is full")
+		return nil
+	end
+
+	if base.PrimaryPart then
+		base:PivotTo(goal.CFrame + pos)
+	else
+		base:MoveTo((goal.CFrame + pos).Position)
+	end
+
+	return base
 end
 
 -- =========================
@@ -251,19 +271,32 @@ end
 -- =========================
 Players.PlayerAdded:Connect(function(player)
 
-	-- Base作成
 	local base = createBase(player)
+	if not base then return end
 
-	-- slotsセット
 	for _, slot in ipairs(base.Base:GetChildren()) do
 		if slot:IsA("Model") then
 			setupSlot(player, base, slot)
 		end
 	end
 
-	-- Character
 	player.CharacterAdded:Connect(function(character)
 		clearTreasure(player, character)
 		applySpeed(player, character)
 	end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+
+	releaseSlot(player)
+
+	if generators[player] then
+		generators[player]()
+		generators[player] = nil
+	end
+
+	local base = workspace:FindFirstChild(player.Name .. "_Base")
+	if base then
+		base:Destroy()
+	end
 end)

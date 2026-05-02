@@ -2,27 +2,22 @@ local module = {}
 
 function module.setupTreasure(treasure)
 
-	local picked = false
-
 	for _, part in ipairs(treasure:GetDescendants()) do
 		if part:IsA("BasePart") then
 
 			part.Touched:Connect(function(hit)
 
-				if picked then return end
+				-- 多重防止（重要）
+				if treasure:GetAttribute("Picked") then return end
 
 				local player = game.Players:GetPlayerFromCharacter(hit.Parent)
 				if not player then return end
 
 				if player:FindFirstChild("HasTreasure") then return end
 
-				picked = true
+				treasure:SetAttribute("Picked", true)
 
-				-- =========================
-				-- 価値取得（修正ポイント）
-				-- =========================
 				local value = 0
-
 				local coinValue = treasure:FindFirstChild("CoinValue")
 				if coinValue then
 					value = coinValue.Value
@@ -30,9 +25,7 @@ function module.setupTreasure(treasure)
 					value = treasure:GetAttribute("Value") or 0
 				end
 
-				-- =========================
-				-- タグ
-				-- =========================
+				-- 状態
 				local tag = Instance.new("BoolValue")
 				tag.Name = "HasTreasure"
 				tag.Parent = player
@@ -47,11 +40,7 @@ function module.setupTreasure(treasure)
 				typeValue.Value = treasure.Name
 				typeValue.Parent = player
 
-				print(player.Name .. " picked " .. typeValue.Value)
-
-				-- =========================
 				-- 見た目
-				-- =========================
 				local character = hit.Parent
 				local head = character:FindFirstChild("Head")
 
@@ -59,13 +48,6 @@ function module.setupTreasure(treasure)
 					local clone = treasure:Clone()
 					clone.Name = "CarriedTreasure"
 					clone.Parent = character
-
-					if not clone.PrimaryPart then
-						local root = clone:FindFirstChildWhichIsA("BasePart")
-						if root then
-							clone.PrimaryPart = root
-						end
-					end
 
 					for _, p in ipairs(clone:GetDescendants()) do
 						if p:IsA("BasePart") then
@@ -75,17 +57,12 @@ function module.setupTreasure(treasure)
 						end
 					end
 
-					if clone.PrimaryPart then
-						for _, p in ipairs(clone:GetDescendants()) do
-							if p:IsA("BasePart") and p ~= clone.PrimaryPart then
-								local weld = Instance.new("WeldConstraint")
-								weld.Part0 = clone.PrimaryPart
-								weld.Part1 = p
-								weld.Parent = p
-							end
-						end
+					if not clone.PrimaryPart then
+						clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
+					end
 
-						clone:PivotTo(head.CFrame * CFrame.new(0, 2, 2))
+					if clone.PrimaryPart then
+						clone:PivotTo(head.CFrame * CFrame.new(0,2,2))
 
 						local weld = Instance.new("WeldConstraint")
 						weld.Part0 = clone.PrimaryPart
@@ -94,7 +71,6 @@ function module.setupTreasure(treasure)
 					end
 				end
 
-				-- 元削除
 				treasure:Destroy()
 			end)
 		end

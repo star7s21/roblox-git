@@ -4,18 +4,30 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local dataStore = DataStoreService:GetDataStore("PlayerData")
 
--- Base待機
+-- =========================
+-- 設定
+-- =========================
+local DEV_RESET = false -- ← trueで全リセット
+local DATA_VERSION = 1  -- ← 変更で強制リセット
+
+-- =========================
+-- Base待機（安全版）
+-- =========================
 local function waitForBase(player)
-	while true do
+	for i = 1,50 do
 		local base = workspace:FindFirstChild(player.Name .. "_Base")
 		if base and base:FindFirstChild("Base") then
 			return base
 		end
 		task.wait(0.2)
 	end
+	warn("Base not found:", player.Name)
+	return nil
 end
 
+-- =========================
 -- スナップショット
+-- =========================
 local function collectBaseData(base)
 	local result = {}
 
@@ -35,7 +47,9 @@ local function collectBaseData(base)
 	return result
 end
 
+-- =========================
 -- 復元
+-- =========================
 local function spawnItem(base, data)
 	local folder = ReplicatedStorage:WaitForChild("Treasures")
 
@@ -50,7 +64,9 @@ local function spawnItem(base, data)
 
 	local item = template:Clone()
 	item.Parent = base
-	item:SetAttribute("Value", data.value)
+	item:SetAttribute("Value", data.value or 0)
+
+	item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
 
 	if item.PrimaryPart then
 		item:PivotTo(placePart.CFrame)
@@ -64,41 +80,76 @@ local function spawnItem(base, data)
 	stored.Parent = placePart
 end
 
+-- =========================
 -- Player
+-- =========================
 Players.PlayerAdded:Connect(function(player)
 
+	-- =========================
+	-- leaderstats初期化
+	-- =========================
 	local leaderstats = Instance.new("Folder", player)
 	leaderstats.Name = "leaderstats"
 
 	local coins = Instance.new("IntValue", leaderstats)
 	coins.Name = "Coins"
+	coins.Value = 0
 
 	local speed = Instance.new("IntValue", leaderstats)
 	speed.Name = "Speed"
+	speed.Value = 16
 
 	local upgradeCost = Instance.new("IntValue", player)
 	upgradeCost.Name = "UpgradeCost"
+	upgradeCost.Value = 50
 
+	-- =========================
+	-- LOAD
+	-- =========================
 	local data
-	pcall(function()
-		data = dataStore:GetAsync(player.UserId)
-	end)
 
+	if DEV_RESET then
+		print("DEV RESET:", player.Name)
+		pcall(function()
+			dataStore:RemoveAsync(player.UserId)
+		end)
+	else
+		pcall(function()
+			data = dataStore:GetAsync(player.UserId)
+		end)
+	end
+
+	-- バージョンチェック
+	if data and data.Version ~= DATA_VERSION then
+		print("VERSION RESET:", player.Name)
+		data = nil
+	end
+
+	-- 適用（安全版）
 	if data then
 		coins.Value = data.Coins or 0
-		speed.Value = data.Speed or 16
+
+		-- 🔥 Speedバグ防止
+		if data.Speed and data.Speed > 0 then
+			speed.Value = data.Speed
+		end
+
 		upgradeCost.Value = data.UpgradeCost or 50
 	end
 
-	-- 復元（1回のみ）
+	-- =========================
+	-- Base復元
+	-- =========================
 	task.spawn(function()
 
 		local base = waitForBase(player)
+		if not base then return end
 
 		-- クリア
 		for _, slot in ipairs(base.Base:GetChildren()) do
 			local p = slot:FindFirstChild("ItemArea")
 			local s = p and p:FindFirstChild("StoredItem")
+
 			if s then
 				if s.Value then s.Value:Destroy() end
 				s:Destroy()
@@ -114,7 +165,9 @@ Players.PlayerAdded:Connect(function(player)
 	end)
 end)
 
--- SAVE
+-- =========================
+-- SAVE（安全版）
+-- =========================
 local function save(player)
 
 	local base = workspace:FindFirstChild(player.Name .. "_Base")
@@ -123,15 +176,37 @@ local function save(player)
 	if not base or not leaderstats then return end
 
 	local data = {
-		Coins = leaderstats.Coins.Value,
-		Speed = leaderstats.Speed.Value,
+		Version = DATA_VERSION,
+
+		Coins = leaderstats:FindFirstChild("Coins") and leaderstats.Coins.Value or 0,
+
+		-- 🔥 Speed安全保存
+		Speed = math.max(
+			leaderstats:FindFirstChild("Speed") and leaderstats.Speed.Value or 16,
+			16
+		),
+
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
+
 		BaseItems = collectBaseData(base)
 	}
 
-	pcall(function()
-		dataStore:SetAsync(player.UserId, data)
-	end)
+	for i = 1,3 do
+		local success = pcall(function()
+			dataStore:UpdateAsync(player.UserId, function()
+				return data
+			end)
+		end)
+
+		if success then
+			print("SAVE OK:", player.Name)
+			return
+		end
+
+		task.wait(1)
+	end
+
+	warn("SAVE FAILED:", player.Name)
 end
 
 Players.PlayerRemoving:Connect(save)
@@ -140,5 +215,5 @@ game:BindToClose(function()
 	for _, p in ipairs(Players:GetPlayers()) do
 		save(p)
 	end
-	task.wait(2)
+	task.wait(5)
 end)

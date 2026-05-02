@@ -1,31 +1,48 @@
 local remote = game.ReplicatedStorage:WaitForChild("DropTreasureEvent")
 
+local TreasureModule = require(game.ServerScriptService.Server.Services.Treasure)
+local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
+
 remote.OnServerEvent:Connect(function(player)
 
 	local char = player.Character
 	if not char then return end
 
-	local item = char:FindFirstChild("CarriedTreasure")
-	if not item then return end
+	local carried = char:FindFirstChild("CarriedTreasure")
+	if not carried then return end
 
 	local root = char:FindFirstChild("HumanoidRootPart")
 	if not root then return end
 
 	-- =========================
-	-- 先に値を取得
+	-- データ取得
 	-- =========================
 	local valueObj = player:FindFirstChild("TreasureValue")
 	local typeObj = player:FindFirstChild("TreasureType")
 
 	local value = valueObj and valueObj.Value or 0
-	local typeName = typeObj and typeObj.Value or item.Name
-
-	-- Valueを戻す
-	item:SetAttribute("Value", value)
-	item.Name = typeName -- 念のため統一
+	local typeName = typeObj and typeObj.Value or carried.Name
 
 	-- =========================
-	-- タグ削除
+	-- 新しく生成（←ここが核心）
+	-- =========================
+	local template = treasureFolder:FindFirstChild(typeName)
+	if not template then return end
+
+	local item = template:Clone()
+	item:SetAttribute("Value", value)
+	item.Parent = workspace
+
+	item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
+
+	if item.PrimaryPart then
+		item:PivotTo(root.CFrame * CFrame.new(0, 0, -6))
+	else
+		item:MoveTo(root.Position + Vector3.new(0,0,-6))
+	end
+
+	-- =========================
+	-- プレイヤー状態クリア
 	-- =========================
 	local tag = player:FindFirstChild("HasTreasure")
 	if tag then tag:Destroy() end
@@ -33,49 +50,11 @@ remote.OnServerEvent:Connect(function(player)
 	if valueObj then valueObj:Destroy() end
 	if typeObj then typeObj:Destroy() end
 
-	-- =========================
-	-- Weld削除
-	-- =========================
-	for _, v in ipairs(item:GetDescendants()) do
-		if v:IsA("WeldConstraint") then
-			v:Destroy()
-		end
-	end
+	carried:Destroy()
 
 	-- =========================
-	-- 物理戻す
+	-- 拾える状態にする
 	-- =========================
-	for _, p in ipairs(item:GetDescendants()) do
-		if p:IsA("BasePart") then
-			p.Anchored = true
-			p.CanCollide = true
-			p.Massless = false
-		end
-	end
-
-	-- =========================
-	-- PrimaryPart補正
-	-- =========================
-	if item:IsA("Model") and not item.PrimaryPart then
-		local p = item:FindFirstChildWhichIsA("BasePart")
-		if p then item.PrimaryPart = p end
-	end
-
-	-- =========================
-	-- ワールドへ
-	-- =========================
-	item.Parent = workspace
-
-	if item:IsA("Model") and item.PrimaryPart then
-		item:PivotTo(root.CFrame * CFrame.new(0, 0, -6))
-	else
-		item:MoveTo(root.Position + Vector3.new(0,0,-6))
-	end
-
-	-- =========================
-	-- 再取得可能にする
-	-- =========================
-	local TreasureModule = require(game.ServerScriptService.Server.Services.Treasure)
 	TreasureModule.setupTreasure(item)
 
 	print("DROP成功:", typeName, value)
