@@ -34,9 +34,11 @@ local function spawnWave()
 	local wave = template:Clone()
 	wave.Parent = workspace
 
-	-- ランダム横位置
+	-- ランダム横位置（例: 横方向にも少しランダム性を加える場合）
 	-- local x = math.random(-50, 50)
-	wave.Position = Vector3.new(0, 57, startZ)
+	-- Y座標を少しランダムにする
+	local yOffset = math.random(-5, 5)
+	wave.CFrame = CFrame.new(0, 57 + yOffset, startZ)
 
 	-- ランダム速度
 	local speed = math.random(minSpeed, maxSpeed)
@@ -45,9 +47,10 @@ local function spawnWave()
 
 	-- 移動（並列処理）
 	task.spawn(function()
-		while wave and wave.Parent and wave.Position.Z > endZ do
+		while wave and wave.Parent and wave.CFrame.Position.Z > endZ do
 			local dt = task.wait()
-			wave.Position -= Vector3.new(0, 0, speed * dt)
+			-- CFrame を使用して更新
+			wave.CFrame = wave.CFrame * CFrame.new(0, 0, -speed * dt)
 		end
 
 		wave:Destroy()

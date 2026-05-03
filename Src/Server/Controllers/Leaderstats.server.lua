@@ -51,6 +51,8 @@ end
 -- 復元
 -- =========================
 local function spawnItem(base, data)
+	if not base then return end -- baseがnilの場合の早期リターン
+
 	local folder = ReplicatedStorage:WaitForChild("Treasures")
 
 	local slot = base.Base:FindFirstChild(data.slot)
@@ -193,7 +195,9 @@ local function save(player)
 
 	for i = 1,3 do
 		local success = pcall(function()
-			dataStore:UpdateAsync(player.UserId, function()
+			dataStore:UpdateAsync(player.UserId, function(currentData)
+				-- currentData を使用して必要に応じて更新ロジックを適用
+				-- ここでは単純に新しいデータ構造を返す
 				return data
 			end)
 		end)

@@ -65,11 +65,14 @@ local function applySpeed(player, character)
 
 	humanoid.WalkSpeed = speed.Value
 
-	speed:GetPropertyChangedSignal("Value"):Connect(function()
-		if humanoid.Parent then
-			humanoid.WalkSpeed = speed.Value
-		end
-	end)
+	-- 接続は一度だけ行う
+	if not speed.AttributeChangedConnection then -- 簡易的なチェック
+		speed.AttributeChangedConnection = speed:GetPropertyChangedSignal("Value"):Connect(function()
+			if humanoid.Parent then
+				humanoid.WalkSpeed = speed.Value
+			end
+		end)
+	end
 end
 
 -- =========================
