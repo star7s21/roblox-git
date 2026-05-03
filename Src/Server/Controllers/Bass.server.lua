@@ -90,7 +90,10 @@ local function startGenerating(player, item)
 
 			if coins then
 				local value = item:GetAttribute("Value") or 0
-				coins.Value += value
+				-- coinsがnilでないことを再度確認
+				if coins then
+					coins.Value += value
+				end
 			end
 		end
 	end)
