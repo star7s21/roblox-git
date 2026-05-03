@@ -36,6 +36,9 @@ game.Players.PlayerAdded:Connect(function(player)
 				item:PivotTo(root.CFrame * CFrame.new(0, 0, -5))
 			end
 
+			-- 再取得可能にする（プレイヤー状態クリアより前に実行）
+			TreasureModule.setupTreasure(item)
+
 			-- プレイヤー状態クリア（完全）
 			for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType"}) do
 				local v = player:FindFirstChild(name)
@@ -43,9 +46,6 @@ game.Players.PlayerAdded:Connect(function(player)
 			end
 
 			carried:Destroy()
-
-			-- 再取得可能
-			TreasureModule.setupTreasure(item)
 
 			print("死亡ドロップ:", typeName, value)
 		end)

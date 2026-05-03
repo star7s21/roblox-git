@@ -15,7 +15,10 @@ function module.setupTreasure(treasure)
 
 				if player:FindFirstChild("HasTreasure") then return end
 
-				treasure:SetAttribute("Picked", true)
+				--Picked属性をtrueにする（他のプレイヤーが拾えないようにする）
+				--ただし、HasTreasureが設定される前に行うと、自分自身が拾えないバグが発生する可能性があるため、
+				--HasTreasure設定後に実行する。
+				-- treasure:SetAttribute("Picked", true) <-- この行は移動/削除
 
 				local value = 0
 				local coinValue = treasure:FindFirstChild("CoinValue")
@@ -29,6 +32,9 @@ function module.setupTreasure(treasure)
 				local tag = Instance.new("BoolValue")
 				tag.Name = "HasTreasure"
 				tag.Parent = player
+
+				-- Picked属性をtrueにする（他のプレイヤーが拾えないようにする）
+				treasure:SetAttribute("Picked", true)
 
 				local storedValue = Instance.new("IntValue")
 				storedValue.Name = "TreasureValue"

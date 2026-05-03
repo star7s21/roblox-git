@@ -41,6 +41,9 @@ remote.OnServerEvent:Connect(function(player)
 		item:MoveTo(root.Position + Vector3.new(0,0,-6))
 	end
 
+	-- 拾える状態にする（プレイヤー状態クリアより前に実行）
+	TreasureModule.setupTreasure(item)
+
 	-- =========================
 	-- プレイヤー状態クリア
 	-- =========================
@@ -51,11 +54,6 @@ remote.OnServerEvent:Connect(function(player)
 	if typeObj then typeObj:Destroy() end
 
 	carried:Destroy()
-
-	-- =========================
-	-- 拾える状態にする
-	-- =========================
-	TreasureModule.setupTreasure(item)
 
 	print("DROP成功:", typeName, value)
 end)
