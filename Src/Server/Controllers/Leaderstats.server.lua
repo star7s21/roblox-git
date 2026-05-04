@@ -15,7 +15,7 @@ local DATA_VERSION = 1  -- ← 変更で強制リセット
 -- =========================
 local function waitForBass(player)
 	for i = 1,50 do
-		local base = workspace:FindFirstChild(player.Name .. "_Bass")
+		local base = workspace:FindFirstChild(player.Name .. "_Base")
 		if base and base:FindFirstChild("Base") then
 			return base
 		end
@@ -164,8 +164,8 @@ Players.PlayerAdded:Connect(function(player)
 		end
 
 		-- 復元
-		if data and data.BassItems then
-			for _, item in ipairs(data.BassItems) do
+		if data and data.BaseItems then
+			for _, item in ipairs(data.BaseItems) do
 				spawnItem(base, item)
 			end
 		end
@@ -177,7 +177,7 @@ end)
 -- =========================
 local function save(player)
 
-	local base = workspace:FindFirstChild(player.Name .. "_Bass")
+	local base = workspace:FindFirstChild(player.Name .. "_Base")
 	local leaderstats = player:FindFirstChild("leaderstats")
 
 	if not base or not leaderstats then return end
@@ -196,7 +196,7 @@ local function save(player)
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 
-		BassItems = collectBassData(base)
+		BaseItems = collectBassData(base)
 	}
 
 	for i = 1,3 do

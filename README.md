@@ -63,7 +63,7 @@ ServerScriptService
 　　┣Speed(script)：コイン消費してスピードをあげる
 　　┗TreasureSpawner(script)：アイテムの配置
 ServerStorage
-┗BassModel(Model)：Bassパーツ
+┗BaseModel(Model)：Bassパーツ
 StarterGui
 ┣Client(Folder)
 ┃　┣Drop(LocalScript)：ドロップボタンの動作
