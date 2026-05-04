@@ -180,7 +180,7 @@ local function save(player)
 	local base = workspace:FindFirstChild(player.Name .. "_Base")
 	local leaderstats = player:FindFirstChild("leaderstats")
 
-	if not base or not leaderstats then return end
+	if not leaderstats then return end
 
 	local data = {
 		Version = DATA_VERSION,
@@ -196,7 +196,7 @@ local function save(player)
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 
-		BaseItems = collectBaseData(base)
+		BaseItems = base and collectBaseData(base) or {}
 	}
 
 	for i = 1,3 do
@@ -219,7 +219,15 @@ local function save(player)
 	warn("SAVE FAILED:", player.Name)
 end
 
-Players.PlayerRemoving:Connect(save)
+Players.PlayerRemoving:Connect(function(player)
+	save(player)
+
+	-- 保存完了後に基地を削除（データ消失を防止）
+	local base = workspace:FindFirstChild(player.Name .. "_Base")
+	if base then
+		base:Destroy()
+	end
+end)
 
 game:BindToClose(function()
 	for _, p in ipairs(Players:GetPlayers()) do

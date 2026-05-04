@@ -1,6 +1,3 @@
-local DataStoreService = game:GetService("DataStoreService")
-local costStore = DataStoreService:GetDataStore("UpgradeCostStore")
-
 local pad = workspace:WaitForChild("SpeedUpgrade")
 
 local baseCost = 50
@@ -18,31 +15,15 @@ if not prompt then
 end
 
 prompt.ActionText = "Upgrade Speed"
-prompt.ObjectText = "" -- ← サーバーでは触らない
+prompt.ObjectText = ""
 prompt.KeyboardKeyCode = Enum.KeyCode.E
 prompt.HoldDuration = 0
-
--- =========================
--- プレイヤー参加時（ロード）
--- =========================
-game.Players.PlayerAdded:Connect(function(player)
-
-	local costValue = Instance.new("IntValue")
-	costValue.Name = "UpgradeCost"
-	costValue.Parent = player
-
-	local success, data = pcall(function()
-		return costStore:GetAsync(player.UserId)
-	end)
-
-	costValue.Value = (success and data) or baseCost
-end)
 
 -- =========================
 -- コスト取得
 -- =========================
 local function getCost(player)
-	local costValue = player:FindFirstChild("UpgradeCost")
+	local costValue = player:WaitForChild("UpgradeCost", 10)
 	return costValue and costValue.Value or baseCost
 end
 
@@ -77,11 +58,6 @@ prompt.Triggered:Connect(function(player)
 	coins.Value -= currentCost
 	speed.Value += speedIncrease
 
-	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
-	if humanoid then
-		humanoid.WalkSpeed = speed.Value
-	end
-
 	-- コスト更新
 	local costValue = player:FindFirstChild("UpgradeCost")
 	if costValue then
@@ -95,16 +71,8 @@ prompt.Triggered:Connect(function(player)
 end)
 
 -- =========================
--- 保存
+-- クリーンアップ
 -- =========================
 game.Players.PlayerRemoving:Connect(function(player)
-
-	local costValue = player:FindFirstChild("UpgradeCost")
-	if not costValue then return end
-
-	pcall(function()
-		costStore:SetAsync(player.UserId, costValue.Value)
-	end)
-
 	debounce[player] = nil
 end)

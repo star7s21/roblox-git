@@ -292,9 +292,4 @@ Players.PlayerRemoving:Connect(function(player)
 		speedConnections[player]:Disconnect()
 		speedConnections[player] = nil
 	end
-
-	local base = workspace:FindFirstChild(player.Name .. "_Base")
-	if base then
-		base:Destroy()
-	end
 end)
