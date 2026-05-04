@@ -37,10 +37,12 @@ task.spawn(function()
 		task.wait(2)
 
 		local players = game.Players:GetPlayers()
-		if #players > 0 then
-			local player = players[1] -- とりあえず誰か1人
+		for _, player in ipairs(players) do
 			local cost = getCost(player)
-			prompt.ObjectText = "Cost: " .. cost
+			-- ProximityPrompt が存在し、かつプレイヤーに紐づく情報が更新されている場合のみ表示を更新
+			if prompt and player then
+				prompt.ObjectText = "Cost: " .. cost
+			end
 		end
 	end
 end)
