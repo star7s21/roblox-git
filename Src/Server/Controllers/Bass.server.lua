@@ -236,9 +236,9 @@ local function setupSlot(player, base, slot)
 end
 
 -- =========================
--- Bass生成
+-- Base生成
 -- =========================
-local function createBass(player)
+local function createBase(player)
 
 	local old = workspace:FindFirstChild(player.Name .. "_Base")
 	if old then old:Destroy() end
@@ -269,7 +269,7 @@ end
 -- =========================
 Players.PlayerAdded:Connect(function(player)
 
-	local base = createBass(player)
+	local base = createBase(player)
 	if not base then return end
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
