@@ -55,8 +55,8 @@ prompt.Triggered:Connect(function(player)
 	debounce[player] = true
 	prompt.ActionText = "⏳ Wait..."
 
-	coins.Value -= currentCost
-	speed.Value += speedIncrease
+	coins.Value = coins.Value - currentCost
+	speed.Value = speed.Value + speedIncrease
 
 	-- コスト更新
 	local costValue = player:FindFirstChild("UpgradeCost")

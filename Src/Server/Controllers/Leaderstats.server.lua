@@ -31,7 +31,10 @@ end
 local function collectBaseData(base)
 	local result = {}
 
-	for _, slot in ipairs(base.Base:GetChildren()) do
+	local baseFolder = base:FindFirstChild("Base")
+	if not baseFolder then return result end
+
+	for _, slot in ipairs(baseFolder:GetChildren()) do
 		local placePart = slot:FindFirstChild("ItemArea")
 		local stored = placePart and placePart:FindFirstChild("StoredItem")
 
