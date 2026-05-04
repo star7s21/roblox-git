@@ -13,7 +13,6 @@ local SPACING = 100
 local MAX_SLOTS = 10
 
 local used = {}
-local generators = {}
 
 local function assignSlot(player)
 	for i = 1, MAX_SLOTS do
@@ -76,34 +75,6 @@ local function applySpeed(player, character)
 end
 
 -- =========================
--- コイン生成（安全版）
--- =========================
-local function startGenerating(player, item)
-	local alive = true
-
-	task.spawn(function()
-		while alive and item and item.Parent do
-			task.wait(5)
-
-			local leaderstats = player:FindFirstChild("leaderstats")
-			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
-
-			if coins then
-				local value = item:GetAttribute("Value") or 0
-				local rebirths = leaderstats:FindFirstChild("Rebirths")
-				local multiplier = 1 + (rebirths and rebirths.Value or 0)
-				
-				coins.Value = coins.Value + math.floor(value * multiplier)
-			end
-		end
-	end)
-
-	return function()
-		alive = false
-	end
-end
-
--- =========================
 -- SLOT
 -- =========================
 local function setupSlot(player, base, slot)
@@ -142,6 +113,29 @@ local function setupSlot(player, base, slot)
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
+			end
+		end
+	end)
+
+	-- コイン生成ループ (5秒おき)
+	task.spawn(function()
+		while base.Parent do
+			task.wait(5)
+			
+			local stored = placePart:FindFirstChild("StoredItem")
+			local item = stored and stored.Value
+			
+			if item and item.Parent then
+				local leaderstats = player:FindFirstChild("leaderstats")
+				local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+
+				if coins then
+					local value = item:GetAttribute("Value") or 0
+					local rebirths = leaderstats:FindFirstChild("Rebirths")
+					local multiplier = 1 + (rebirths and rebirths.Value or 0)
+					
+					coins.Value = coins.Value + math.floor(value * multiplier)
+				end
 			end
 		end
 	end)
@@ -230,12 +224,6 @@ local function setupSlot(player, base, slot)
 			storedItem.Name = "StoredItem"
 			storedItem.Value = item
 
-			-- コイン生成管理
-			if generators[player] then
-				generators[player]()
-			end
-			generators[player] = startGenerating(player, item)
-
 			clearTreasure(player, character)
 		end
 
@@ -295,11 +283,6 @@ end)
 Players.PlayerRemoving:Connect(function(player)
 
 	releaseSlot(player)
-
-	if generators[player] then
-		generators[player]()
-		generators[player] = nil
-	end
 
 	local base = workspace:FindFirstChild(player.Name .. "_Base")
 	if base then
