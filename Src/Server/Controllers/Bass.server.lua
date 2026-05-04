@@ -85,15 +85,15 @@ local function startGenerating(player, item)
 		while alive and item and item.Parent do
 			task.wait(5)
 
-			local coins = player:FindFirstChild("leaderstats")
-				and player.leaderstats:FindFirstChild("Coins")
+			local leaderstats = player:FindFirstChild("leaderstats")
+			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
 
 			if coins then
 				local value = item:GetAttribute("Value") or 0
-				local rebirths = player.leaderstats:FindFirstChild("Rebirths")
+				local rebirths = leaderstats:FindFirstChild("Rebirths")
 				local multiplier = 1 + (rebirths and rebirths.Value or 0)
 				
-				coins.Value += math.floor(value * multiplier)
+				coins.Value = coins.Value + math.floor(value * multiplier)
 			end
 		end
 	end)

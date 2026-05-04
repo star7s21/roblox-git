@@ -20,7 +20,7 @@ local function doRebirth(player)
 		-- ステータスリセット
 		coins.Value = 0
 		speed.Value = 16
-		rebirths.Value += 1
+		rebirths.Value = rebirths.Value + 1
 		upgradeCost.Value = 50
 
 		-- キャラクターに速度適用
