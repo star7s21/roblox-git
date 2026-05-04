@@ -1,7 +1,16 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BASE_REBIRTH_COST = 1000
 local COST_MULTIPLIER = 2
+
+-- RemoteEventの作成/取得
+local remote = ReplicatedStorage:FindFirstChild("RebirthEvent")
+if not remote then
+	remote = Instance.new("RemoteEvent")
+	remote.Name = "RebirthEvent"
+	remote.Parent = ReplicatedStorage
+end
 
 local function doRebirth(player)
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -34,6 +43,10 @@ local function doRebirth(player)
 		print(player.Name .. " needs " .. currentCost .. " coins for Rebirth.")
 	end
 end
+
+remote.OnServerEvent:Connect(function(player)
+	doRebirth(player)
+end)
 
 Players.PlayerAdded:Connect(function(player)
 	player.Chatted:Connect(function(message)
