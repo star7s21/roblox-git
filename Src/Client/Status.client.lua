@@ -3,6 +3,7 @@ local leaderstats = player:WaitForChild("leaderstats")
 
 local coins = leaderstats:WaitForChild("Coins")
 local speed = leaderstats:WaitForChild("Speed")
+local rebirths = leaderstats:WaitForChild("Rebirths")
 
 local gui = Instance.new("ScreenGui")
 gui.Parent = player:WaitForChild("PlayerGui")
@@ -16,10 +17,11 @@ label.TextColor3 = Color3.fromRGB(255,255,255)
 label.Parent = gui
 
 local function update()
-	label.Text = "Coins: "..coins.Value.." | Speed: "..speed.Value
+	label.Text = "Rebirths: "..rebirths.Value.." | Coins: "..coins.Value.." | Speed: "..speed.Value
 end
 
 coins.Changed:Connect(update)
 speed.Changed:Connect(update)
+rebirths.Changed:Connect(update)
 
 update()

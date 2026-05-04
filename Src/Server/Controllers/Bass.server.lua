@@ -90,7 +90,10 @@ local function startGenerating(player, item)
 
 			if coins then
 				local value = item:GetAttribute("Value") or 0
-				coins.Value += value
+				local rebirths = player.leaderstats:FindFirstChild("Rebirths")
+				local multiplier = 1 + (rebirths and rebirths.Value or 0)
+				
+				coins.Value += math.floor(value * multiplier)
 			end
 		end
 	end)

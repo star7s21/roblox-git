@@ -101,6 +101,10 @@ Players.PlayerAdded:Connect(function(player)
 	speed.Name = "Speed"
 	speed.Value = 16
 
+	local rebirths = Instance.new("IntValue", leaderstats)
+	rebirths.Name = "Rebirths"
+	rebirths.Value = 0
+
 	local upgradeCost = Instance.new("IntValue", player)
 	upgradeCost.Name = "UpgradeCost"
 	upgradeCost.Value = 50
@@ -130,6 +134,7 @@ Players.PlayerAdded:Connect(function(player)
 	-- 適用（安全版）
 	if data then
 		coins.Value = data.Coins or 0
+		rebirths.Value = data.Rebirths or 0
 
 		-- 🔥 Speedバグ防止
 		if data.Speed and data.Speed > 0 then
@@ -181,6 +186,7 @@ local function save(player)
 		Version = DATA_VERSION,
 
 		Coins = leaderstats:FindFirstChild("Coins") and leaderstats.Coins.Value or 0,
+		Rebirths = leaderstats:FindFirstChild("Rebirths") and leaderstats.Rebirths.Value or 0,
 
 		-- 🔥 Speed安全保存
 		Speed = math.max(
