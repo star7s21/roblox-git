@@ -3,7 +3,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local goal = workspace:WaitForChild("StartArea")
-local baseTemplate = ServerStorage:WaitForChild("BaseModel")
+local baseTemplate = ServerStorage:WaitForChild("BassModel")
 local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 
 -- =========================
@@ -244,15 +244,15 @@ local function setupSlot(player, base, slot)
 end
 
 -- =========================
--- Base生成
+-- Bass生成
 -- =========================
-local function createBase(player)
+local function createBass(player)
 
-	local old = workspace:FindFirstChild(player.Name .. "_Base")
+	local old = workspace:FindFirstChild(player.Name .. "_Bass")
 	if old then old:Destroy() end
 
 	local base = baseTemplate:Clone()
-	base.Name = player.Name .. "_Base"
+	base.Name = player.Name .. "_Bass"
 	base.Parent = workspace
 
 	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
@@ -277,7 +277,7 @@ end
 -- =========================
 Players.PlayerAdded:Connect(function(player)
 
-	local base = createBase(player)
+	local base = createBass(player)
 	if not base then return end
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
@@ -301,7 +301,7 @@ Players.PlayerRemoving:Connect(function(player)
 		generators[player] = nil
 	end
 
-	local base = workspace:FindFirstChild(player.Name .. "_Base")
+	local base = workspace:FindFirstChild(player.Name .. "_Bass")
 	if base then
 		base:Destroy()
 	end

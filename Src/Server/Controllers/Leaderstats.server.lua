@@ -11,11 +11,11 @@ local DEV_RESET = false -- ← trueで全リセット
 local DATA_VERSION = 1  -- ← 変更で強制リセット
 
 -- =========================
--- Base待機（安全版）
+-- Bass待機（安全版）
 -- =========================
-local function waitForBase(player)
+local function waitForBass(player)
 	for i = 1,50 do
-		local base = workspace:FindFirstChild(player.Name .. "_Base")
+		local base = workspace:FindFirstChild(player.Name .. "_Bass")
 		if base and base:FindFirstChild("Base") then
 			return base
 		end
@@ -28,7 +28,7 @@ end
 -- =========================
 -- スナップショット
 -- =========================
-local function collectBaseData(base)
+local function collectBassData(base)
 	local result = {}
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
@@ -145,11 +145,11 @@ Players.PlayerAdded:Connect(function(player)
 	end
 
 	-- =========================
-	-- Base復元
+	-- Bass復元
 	-- =========================
 	task.spawn(function()
 
-		local base = waitForBase(player)
+		local base = waitForBass(player)
 		if not base then return end
 
 		-- クリア
@@ -164,8 +164,8 @@ Players.PlayerAdded:Connect(function(player)
 		end
 
 		-- 復元
-		if data and data.BaseItems then
-			for _, item in ipairs(data.BaseItems) do
+		if data and data.BassItems then
+			for _, item in ipairs(data.BassItems) do
 				spawnItem(base, item)
 			end
 		end
@@ -177,7 +177,7 @@ end)
 -- =========================
 local function save(player)
 
-	local base = workspace:FindFirstChild(player.Name .. "_Base")
+	local base = workspace:FindFirstChild(player.Name .. "_Bass")
 	local leaderstats = player:FindFirstChild("leaderstats")
 
 	if not base or not leaderstats then return end
@@ -196,7 +196,7 @@ local function save(player)
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 
-		BaseItems = collectBaseData(base)
+		BassItems = collectBassData(base)
 	}
 
 	for i = 1,3 do
