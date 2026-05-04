@@ -13,6 +13,7 @@ local SPACING = 100
 local MAX_SLOTS = 10
 
 local used = {}
+local speedConnections = {}
 
 local function assignSlot(player)
 	for i = 1, MAX_SLOTS do
@@ -64,14 +65,17 @@ local function applySpeed(player, character)
 
 	humanoid.WalkSpeed = speed.Value
 
-	-- 接続は一度だけ行う
-	if not speed.ChangedConnection then -- 簡易的なチェック
-		speed.ChangedConnection = speed.Changed:Connect(function()
-			if humanoid.Parent then
-				humanoid.WalkSpeed = speed.Value
-			end
-		end)
+	-- 古い接続があれば解除
+	if speedConnections[player] then
+		speedConnections[player]:Disconnect()
 	end
+
+	-- 新しいキャラクターのHumanoidに対して接続
+	speedConnections[player] = speed.Changed:Connect(function()
+		if humanoid and humanoid.Parent then
+			humanoid.WalkSpeed = speed.Value
+		end
+	end)
 end
 
 -- =========================
@@ -283,6 +287,11 @@ end)
 Players.PlayerRemoving:Connect(function(player)
 
 	releaseSlot(player)
+
+	if speedConnections[player] then
+		speedConnections[player]:Disconnect()
+		speedConnections[player] = nil
+	end
 
 	local base = workspace:FindFirstChild(player.Name .. "_Base")
 	if base then
