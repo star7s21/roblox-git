@@ -89,8 +89,8 @@ prompt.Triggered:Connect(function(player)
 	prompt.ActionText = "⏳ Wait..."
 
 	-- 購入
-	coins.Value -= currentCost
-	speed.Value += speedIncrease
+	leaderstats.Coins.Value -= currentCost
+	leaderstats.Speed.Value += speedIncrease
 
 	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
 	if humanoid then
