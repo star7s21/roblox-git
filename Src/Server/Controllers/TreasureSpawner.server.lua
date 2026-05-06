@@ -15,11 +15,11 @@ local function getRandomTreasure(level)
 		local weight = t.chance or 0
 
 		if t.name == "Rare" then
-			weight += level * 5
+			weight = weight + (level * 5)
 		elseif t.name == "Epic" then
-			weight += level * 3
+			weight = weight + (level * 3)
 		elseif t.name == "Legendary" then
-			weight += level * 2
+			weight = weight + (level * 2)
 		end
 
 		table.insert(weighted, {data = t, weight = weight})
@@ -27,7 +27,7 @@ local function getRandomTreasure(level)
 
 	local total = 0
 	for _, w in ipairs(weighted) do
-		total += w.weight or 0
+		total = total + (w.weight or 0)
 	end
 
 	if total <= 0 then return config[1] end
@@ -36,7 +36,7 @@ local function getRandomTreasure(level)
 	local sum = 0
 
 	for _, w in ipairs(weighted) do
-		sum += w.weight or 0
+		sum = sum + (w.weight or 0)
 		if rand <= sum then
 			return w.data
 		end

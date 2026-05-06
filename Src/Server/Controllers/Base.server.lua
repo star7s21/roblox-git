@@ -225,11 +225,11 @@ local function setupSlot(player, base, slot)
 				
 				local statusText = "Lv." .. level .. "\n"
 				if current >= maxCap then
-					statusText ..= "FULL!"
+					statusText = statusText .. "FULL!"
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					touchPart.Color = Color3.fromRGB(255, 255, 0)
 				else
-					statusText ..= "Coins: " .. math.floor(current)
+					statusText = statusText .. "Coins: " .. math.floor(current)
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					touchPart.Color = Color3.fromRGB(163, 162, 165)
 				end
