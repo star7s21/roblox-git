@@ -1,15 +1,17 @@
-local configModule = require(script.Parent.Parent.Services.TreasureConfig)
-local config = configModule.Types
+local configModule = require(game:GetService("ServerScriptService").Server.Services.TreasureConfig)
+local config = configModule and configModule.Types
 
-local TreasureModule = require(script.Parent.Parent.Services.Treasure)
+local TreasureModule = require(game:GetService("ServerScriptService").Server.Services.Treasure)
 local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
 
 -- ランダム
 local function getRandomTreasure(level)
 	local weighted = {}
 
+	if not config then return nil end
+
 	for _, t in ipairs(config) do
-		local weight = t.chance
+		local weight = t.chance or 0
 
 		if t.name == "Rare" then
 			weight += level * 5
@@ -24,23 +26,28 @@ local function getRandomTreasure(level)
 
 	local total = 0
 	for _, w in ipairs(weighted) do
-		total += w.weight
+		total += w.weight or 0
 	end
+
+	if total <= 0 then return config[1] end
 
 	local rand = math.random() * total
 	local sum = 0
 
 	for _, w in ipairs(weighted) do
-		sum += w.weight
+		sum += w.weight or 0
 		if rand <= sum then
 			return w.data
 		end
 	end
+
+	return config[1]
 end
 
 -- スポーン
 local function spawnTreasure(position, level)
 	local t = getRandomTreasure(level)
+	if not t then return end
 
 	local template = treasureFolder:FindFirstChild(t.model)
 	local treasure = template:Clone()
