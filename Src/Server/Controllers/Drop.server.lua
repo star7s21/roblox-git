@@ -17,10 +17,7 @@ remote.OnServerEvent:Connect(function(player)
 	-- =========================
 	-- データ取得
 	-- =========================
-	local valueObj = player:FindFirstChild("TreasureValue")
 	local typeObj = player:FindFirstChild("TreasureType")
-
-	local value = valueObj and valueObj.Value or 0
 	local typeName = typeObj and typeObj.Value or carried.Name
 
 	-- =========================
@@ -29,16 +26,19 @@ remote.OnServerEvent:Connect(function(player)
 	local template = treasureFolder:FindFirstChild(typeName)
 	if not template then return end
 
+	local levelObj = player:FindFirstChild("TreasureLevel")
+	local level = levelObj and levelObj.Value or 1
+
 	local item = template:Clone()
-	item:SetAttribute("Value", value)
 	item.Parent = workspace
 
+	item:SetAttribute("Level", level)
 	item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
 
 	if item.PrimaryPart then
-		item:PivotTo(root.CFrame * CFrame.new(0, 0, -6))
+		item:PivotTo(root.CFrame * CFrame.new(0, 0, -10))
 	else
-		item:MoveTo(root.Position + Vector3.new(0,0,-6))
+		item:MoveTo(root.Position + Vector3.new(0,0,-10))
 	end
 
 	-- 拾える状態にする（プレイヤー状態クリアより前に実行）
@@ -50,7 +50,6 @@ remote.OnServerEvent:Connect(function(player)
 	local tag = player:FindFirstChild("HasTreasure")
 	if tag then tag:Destroy() end
 
-	if valueObj then valueObj:Destroy() end
 	if typeObj then typeObj:Destroy() end
 
 	carried:Destroy()

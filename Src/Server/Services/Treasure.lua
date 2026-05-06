@@ -37,7 +37,7 @@ function module.setupTreasure(treasure)
 
 				local typeValue = Instance.new("StringValue")
 				typeValue.Name = "TreasureType"
-				typeValue.Value = treasure.Name
+				typeValue.Value = treasure:GetAttribute("Model") or treasure.Name
 				typeValue.Parent = player
 
 				-- 見た目

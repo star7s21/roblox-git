@@ -75,7 +75,7 @@ ReplicatedStorage
 ┃　┗RareTreasure（Model）
 ┗DropTreasureEvent（RemoteEvent）：アイテム手放すイベント
 ServerStorage
-┗BaseModel（Model）：Bassパーツ
+┗BaseModel（Model）：基地パーツ
 StarterGui
 ┗DropUI（ScreenGUI）：ドロップボタン
 　┗Frame（Frame）

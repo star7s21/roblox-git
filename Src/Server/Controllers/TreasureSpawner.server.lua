@@ -52,7 +52,7 @@ local function spawnTreasure(position, level)
 
 	local template = treasureFolder:FindFirstChild(t.model)
 	local treasure = template:Clone()
-	treasure.Name = t.name
+	treasure:SetAttribute("Model", t.model)
 	treasure.Parent = workspace
 
 	-- PrimaryPart保険

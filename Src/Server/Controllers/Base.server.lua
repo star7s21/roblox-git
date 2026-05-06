@@ -184,10 +184,11 @@ local function setupSlot(player, base, slot)
 	if not billboard then
 		billboard = Instance.new("BillboardGui")
 		billboard.Name = "StatusUI"
-		billboard.Size = UDim2.new(0, 150, 0, 50)
-		billboard.StudsOffset = Vector3.new(0, 4, 0)
+		billboard.Size = UDim2.new(0, 100, 0, 50)
+		billboard.StudsOffset = Vector3.new(0, 6, 0)
 		billboard.AlwaysOnTop = true
 		billboard.Parent = touchPart
+		billboard.MaxDistance = 50
 
 		local text = Instance.new("TextLabel")
 		text.Name = "Label"
@@ -198,7 +199,7 @@ local function setupSlot(player, base, slot)
 		text.TextStrokeColor3 = Color3.new(0, 0, 0)
 		text.Font = Enum.Font.GothamBold
 		text.TextScaled = true
-		text.TextWrapped = false
+		text.TextWrapped = true
 		text.Parent = billboard
 	end
 
