@@ -42,7 +42,7 @@ local function collectBaseData(base)
 			table.insert(result, {
 				slot = slot.Name,
 				type = stored.Value.Name,
-				value = stored.Value:GetAttribute("Value") or 0
+				level = placePart:GetAttribute("Level") or 1
 			})
 		end
 	end
@@ -69,7 +69,7 @@ local function spawnItem(base, data)
 
 	local item = template:Clone()
 	item.Parent = base
-	item:SetAttribute("Value", data.value or 0)
+	placePart:SetAttribute("Level", data.level or 1)
 
 	item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
 

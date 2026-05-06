@@ -2,6 +2,8 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local TreasureConfig = require(game:GetService("ServerScriptService").Src.Server.Services.TreasureConfig)
+
 local goal = workspace:WaitForChild("StartArea")
 local baseTemplate = ServerStorage:WaitForChild("BaseModel")
 local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
@@ -45,7 +47,7 @@ end
 -- 状態リセット
 -- =========================
 local function clearTreasure(player, character)
-	for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType"}) do
+	for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType","TreasureLevel"}) do
 		local v = player:FindFirstChild(name)
 		if v then v:Destroy() end
 	end
@@ -59,6 +61,33 @@ end
 -- =========================
 -- スピード適用
 -- =========================
+-- ステータス計算
+local function getStats(player, typeName, level)
+	local config = nil
+	for _, t in ipairs(TreasureConfig.Types) do
+		if t.name == typeName then
+			config = t
+			break
+		end
+	end
+	if not config then return 0, 0 end
+
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local rebirths = leaderstats and leaderstats:FindFirstChild("Rebirths")
+	local rebirthMultiplier = 1 + (rebirths and rebirths.Value or 0)
+
+	local coinsPerSecond = config.baseCoinsPerSecond
+		* config.rarityMultiplier
+		* (config.levelMultiplier ^ (level - 1))
+		* rebirthMultiplier
+
+	local maxCapacity = coinsPerSecond
+		* config.baseCapacityTime
+		* config.capacityMultiplier
+
+	return coinsPerSecond, maxCapacity
+end
+
 local function applySpeed(player, character)
 	local humanoid = character:WaitForChild("Humanoid")
 	local speed = player:WaitForChild("leaderstats"):WaitForChild("Speed")
@@ -96,6 +125,60 @@ local function setupSlot(player, base, slot)
 	prompt.HoldDuration = 0
 	local debounce = false
 
+	-- 初期属性
+	if not placePart:GetAttribute("Level") then placePart:SetAttribute("Level", 1) end
+	if not placePart:GetAttribute("CurrentCoins") then placePart:SetAttribute("CurrentCoins", 0) end
+	if not placePart:GetAttribute("LastUpdateTime") then placePart:SetAttribute("LastUpdateTime", os.clock()) end
+
+	local function updateSlot()
+		local stored = placePart:FindFirstChild("StoredItem")
+		local item = stored and stored.Value
+		if not item or not item.Parent then
+			placePart:SetAttribute("CurrentCoins", 0)
+			placePart:SetAttribute("LastUpdateTime", os.clock())
+			return 0, 0
+		end
+
+		local level = placePart:GetAttribute("Level") or 1
+		local currentCoins = placePart:GetAttribute("CurrentCoins") or 0
+		local lastUpdateTime = placePart:GetAttribute("LastUpdateTime") or os.clock()
+
+		local now = os.clock()
+		local delta = now - lastUpdateTime
+
+		local cps, maxCap = getStats(player, item.Name, level)
+
+		currentCoins = math.min(maxCap, currentCoins + cps * delta)
+
+		placePart:SetAttribute("CurrentCoins", currentCoins)
+		placePart:SetAttribute("LastUpdateTime", now)
+
+		return currentCoins, maxCap
+	end
+
+	-- Touched (コイン回収)
+	touchPart.Touched:Connect(function(hit)
+		local char = hit.Parent
+		local p = Players:GetPlayerFromCharacter(char)
+		if p ~= player or debounce then return end
+
+		local stored = placePart:FindFirstChild("StoredItem")
+		if not stored or not stored.Value then return end
+
+		debounce = true
+		local current, _ = updateSlot()
+		if current and current > 0 then
+			local leaderstats = player:FindFirstChild("leaderstats")
+			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+			if coins then
+				coins.Value = coins.Value + math.floor(current)
+				placePart:SetAttribute("CurrentCoins", 0)
+			end
+		end
+		task.wait(0.5)
+		debounce = false
+	end)
+
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
@@ -103,43 +186,32 @@ local function setupSlot(player, base, slot)
 
 			local stored = placePart:FindFirstChild("StoredItem")
 			local hasTreasure = player:FindFirstChild("HasTreasure")
-
 			local item = stored and stored.Value
+			local level = placePart:GetAttribute("Level") or 1
+
+			local current, maxCap = updateSlot()
 
 			local canPickup = item and not hasTreasure
 			local canPlace = hasTreasure and not item
 
 			prompt.Enabled = canPickup or canPlace
 
-			if canPickup then
-				prompt.ActionText = "Pick Up"
-				prompt.ObjectText = item.Name
+			if item then
+				prompt.ObjectText = item.Name .. " Lv." .. level
+				if current >= maxCap then
+					prompt.ActionText = "FULL!"
+					touchPart.Color = Color3.fromRGB(255, 255, 0)
+				else
+					prompt.ActionText = "Coins: " .. math.floor(current)
+					touchPart.Color = Color3.fromRGB(163, 162, 165)
+				end
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
-			end
-		end
-	end)
-
-	-- コイン生成ループ (5秒おき)
-	task.spawn(function()
-		while base.Parent do
-			task.wait(5)
-			
-			local stored = placePart:FindFirstChild("StoredItem")
-			local item = stored and stored.Value
-			
-			if item and item.Parent then
-				local leaderstats = player:FindFirstChild("leaderstats")
-				local coins = leaderstats and leaderstats:FindFirstChild("Coins")
-
-				if coins then
-					local value = item:GetAttribute("Value") or 0
-					local rebirths = leaderstats:FindFirstChild("Rebirths")
-					local multiplier = 1 + (rebirths and rebirths.Value or 0)
-					
-					coins.Value = coins.Value + math.floor(value * multiplier)
-				end
+				touchPart.Color = Color3.fromRGB(163, 162, 165)
+			else
+				prompt.Enabled = false
+				touchPart.Color = Color3.fromRGB(163, 162, 165)
 			end
 		end
 	end)
@@ -159,13 +231,14 @@ local function setupSlot(player, base, slot)
 		if stored and stored.Value and not hasTreasure then
 
 			local item = stored.Value
+			local level = placePart:GetAttribute("Level") or 1
 			clearTreasure(player, character)
 
 			Instance.new("BoolValue", player).Name = "HasTreasure"
 
-			local value = Instance.new("IntValue", player)
-			value.Name = "TreasureValue"
-			value.Value = item:GetAttribute("Value") or 0
+			local levelValue = Instance.new("IntValue", player)
+			levelValue.Name = "TreasureLevel"
+			levelValue.Value = level
 
 			local typeValue = Instance.new("StringValue", player)
 			typeValue.Name = "TreasureType"
@@ -207,16 +280,18 @@ local function setupSlot(player, base, slot)
 		-- 設置
 		elseif hasTreasure and (not stored or not stored.Value) then
 
-			local value = player:FindFirstChild("TreasureValue")
+			local levelValue = player:FindFirstChild("TreasureLevel")
 			local typeValue = player:FindFirstChild("TreasureType")
-			if not value or not typeValue then debounce = false return end
+			if not levelValue or not typeValue then debounce = false return end
 
 			local template = treasureFolder:FindFirstChild(typeValue.Value)
 			if not template then debounce = false return end
 
 			local item = template:Clone()
 			item.Parent = base
-			item:SetAttribute("Value", value.Value)
+			placePart:SetAttribute("Level", levelValue.Value)
+			placePart:SetAttribute("CurrentCoins", 0)
+			placePart:SetAttribute("LastUpdateTime", os.clock())
 
 			if item.PrimaryPart then
 				item:PivotTo(placePart.CFrame)
