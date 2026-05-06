@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local TreasureConfig = require(game:GetService("ServerScriptService").Src.Server.Services.TreasureConfig)
+local TreasureConfig = require(game:GetService("ServerScriptService").Server.Services.TreasureConfig)
 
 local goal = workspace:WaitForChild("StartArea")
 local baseTemplate = ServerStorage:WaitForChild("BaseModel")

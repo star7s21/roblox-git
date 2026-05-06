@@ -20,13 +20,7 @@ function module.setupTreasure(treasure)
 				--HasTreasure設定後に実行する。
 				-- treasure:SetAttribute("Picked", true) <-- この行は移動/削除
 
-				local value = 0
-				local coinValue = treasure:FindFirstChild("CoinValue")
-				if coinValue then
-					value = coinValue.Value
-				else
-					value = treasure:GetAttribute("Value") or 0
-				end
+				local level = treasure:GetAttribute("Level") or 1
 
 				-- 状態
 				local tag = Instance.new("BoolValue")
@@ -37,8 +31,8 @@ function module.setupTreasure(treasure)
 				treasure:SetAttribute("Picked", true)
 
 				local storedValue = Instance.new("IntValue")
-				storedValue.Name = "TreasureValue"
-				storedValue.Value = value
+				storedValue.Name = "TreasureLevel"
+				storedValue.Value = level
 				storedValue.Parent = player
 
 				local typeValue = Instance.new("StringValue")

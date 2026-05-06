@@ -66,11 +66,8 @@ local function spawnTreasure(position, level)
 		end
 	end
 
-	-- コイン値
-	local value = Instance.new("IntValue")
-	value.Name = "CoinValue"
-	value.Value = t.coins
-	value.Parent = treasure
+	-- レベル設定
+	treasure:SetAttribute("Level", level)
 
 	-- 名前表示
 	if treasure.PrimaryPart then
