@@ -65,7 +65,7 @@ end
 local function getStats(player, typeName, level)
 	local config = nil
 	for _, t in ipairs(TreasureConfig.Types) do
-		if t.name == typeName then
+		if t.name == typeName or t.model == typeName then
 			config = t
 			break
 		end
@@ -179,6 +179,29 @@ local function setupSlot(player, base, slot)
 		debounce = false
 	end)
 
+	-- UI (BillboardGui) 作成
+	local billboard = touchPart:FindFirstChild("StatusUI")
+	if not billboard then
+		billboard = Instance.new("BillboardGui")
+		billboard.Name = "StatusUI"
+		billboard.Size = UDim2.new(0, 150, 0, 50)
+		billboard.StudsOffset = Vector3.new(0, 4, 0)
+		billboard.AlwaysOnTop = true
+		billboard.Parent = touchPart
+
+		local text = Instance.new("TextLabel")
+		text.Name = "Label"
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.TextStrokeTransparency = 0
+		text.TextStrokeColor3 = Color3.new(0, 0, 0)
+		text.Font = Enum.Font.GothamBold
+		text.TextScaled = true
+		text.TextWrapped = false
+		text.Parent = billboard
+	end
+
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
@@ -197,21 +220,30 @@ local function setupSlot(player, base, slot)
 			prompt.Enabled = canPickup or canPlace
 
 			if item then
-				prompt.ObjectText = item.Name .. " Lv." .. level
+				prompt.ObjectText = item.Name
+				prompt.ActionText = "Pick Up"
+				
+				local statusText = "Lv." .. level .. "\n"
 				if current >= maxCap then
-					prompt.ActionText = "FULL!"
+					statusText ..= "FULL!"
+					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					touchPart.Color = Color3.fromRGB(255, 255, 0)
 				else
-					prompt.ActionText = "Coins: " .. math.floor(current)
+					statusText ..= "Coins: " .. math.floor(current)
+					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					touchPart.Color = Color3.fromRGB(163, 162, 165)
 				end
+				billboard.Label.Text = statusText
+				billboard.Enabled = true
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				billboard.Enabled = false
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				billboard.Enabled = false
 			end
 		end
 	end)
