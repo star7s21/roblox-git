@@ -6,6 +6,7 @@ local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
 
 -- ランダム
 local function getRandomTreasure(level)
+	level = tonumber(level) or 1
 	local weighted = {}
 
 	if not config then return nil end
