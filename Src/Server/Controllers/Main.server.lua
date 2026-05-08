@@ -1,66 +1,149 @@
+local RunService = game:GetService("RunService")
+
 local template = workspace:WaitForChild("Wave")
+
+local MAP_WIDTH = 1024
+local HALF_MAP = MAP_WIDTH / 2
 
 local startZ = 1024
 local endZ = -705
 
-local minSpeed = 80
-local maxSpeed = 200
+local minSpeed = 50
+local maxSpeed = 150
 
 local minWait = 1
 local maxWait = 4
 
+local waves = {}
+
+---------------------------------------------------
 -- 当たり判定
+---------------------------------------------------
 local function setupWave(wave)
 	wave.Touched:Connect(function(hit)
-
 		local character = hit.Parent
 		local humanoid = character:FindFirstChild("Humanoid")
+		if not humanoid then return end
 
-		if humanoid then
-			local root = character:FindFirstChild("HumanoidRootPart")
-
-			if root and root.Position.Y < 7 then
-				return
-			end
-
-			humanoid.Health = 0
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if root and root.Position.Y < 7 then
+			return
 		end
+
+		humanoid.Health = 0
 	end)
 end
 
--- 津波生成
+---------------------------------------------------
+-- 波生成
+---------------------------------------------------
 local function spawnWave()
 
 	local wave = template:Clone()
 	wave.Parent = workspace
 
-	-- ランダム横位置（例: 横方向にも少しランダム性を加える場合）
-	-- local x = math.random(-50, 50)
-	-- Y座標を少しランダムにする
-	local yOffset = math.random(-5, 5)
-	wave.CFrame = CFrame.new(0, 57 + yOffset, startZ)
+	-- 🔥 サイズ調整（小さい波を増やすため偏り変更）
+	local r = math.random()
+	local widthScale
 
-	-- ランダム速度
+	if r < 0.6 then
+		widthScale = math.random(20, 60) / 100 -- 小波多め
+	elseif r < 0.9 then
+		widthScale = math.random(50, 80) / 100 -- 中波
+	else
+		widthScale = math.random(80, 100) / 100 -- 大波少し
+	end
+
+	local waveWidth = template.Size.X * widthScale
+
+	-- はみ出し防止
+	local maxXOffset = HALF_MAP - (waveWidth / 2)
+	local xOffset = math.random(-maxXOffset, maxXOffset)
+
+	local basePosition = Vector3.new(xOffset, 57, startZ)
+
+	wave.Size = Vector3.new(
+		waveWidth,
+		wave.Size.Y,
+		wave.Size.Z
+	)
+
+	wave.CFrame = CFrame.new(basePosition)
+
 	local speed = math.random(minSpeed, maxSpeed)
 
-	setupWave(wave)
+	-- 🔥 小さい波だけ蛇行（40%以下）
+	local snakeEnabled = widthScale <= 0.4
 
-	-- 移動（並列処理）
-	task.spawn(function()
-		while wave and wave.Parent and wave.CFrame.Position.Z > endZ do
-			local dt = task.wait()
-			-- CFrame を使用して更新
-			wave.CFrame = wave.CFrame * CFrame.new(0, 0, -speed * dt)
+	local data = {
+		part = wave,
+		baseX = basePosition.X,
+		baseY = basePosition.Y,
+		z = startZ,
+		speed = speed,
+		phase = math.random() * math.pi * 2,
+		snakeEnabled = snakeEnabled,
+		intensity = math.random(8, 20) -- 派手さ
+	}
+
+	table.insert(waves, data)
+
+	setupWave(wave)
+end
+
+---------------------------------------------------
+-- 更新処理
+---------------------------------------------------
+local time = 0
+
+RunService.Heartbeat:Connect(function(dt)
+	time += dt
+
+	for i = #waves, 1, -1 do
+		local w = waves[i]
+		local part = w.part
+
+		if not part or not part.Parent then
+			table.remove(waves, i)
+			continue
 		end
 
-		wave:Destroy()
-	end)
-end
+		w.z -= w.speed * dt
 
--- 無限ループ
-while true do
-	spawnWave()
+		if w.z < endZ then
+			part:Destroy()
+			table.remove(waves, i)
+			continue
+		end
 
-	-- ランダム間隔
-	task.wait(math.random(minWait, maxWait))
-end
+		---------------------------------------------------
+		-- 🌊 蛇行（派手版）
+		---------------------------------------------------
+		local snakeOffset = 0
+
+		if w.snakeEnabled then
+			local t = time * 4 + w.phase
+
+			-- 横揺れ + 波状揺れ（2段構造）
+			snakeOffset =
+				math.sin(t) * w.intensity +
+				math.sin(t * 0.5) * (w.intensity * 1.5)
+		end
+
+		part.CFrame = CFrame.new(
+			w.baseX + snakeOffset,
+			w.baseY,
+			w.z
+		)
+	end
+end)
+
+---------------------------------------------------
+-- スポーン
+---------------------------------------------------
+task.spawn(function()
+	while true do
+		spawnWave()
+		task.wait(math.random(minWait, maxWait))
+	end
+end)
