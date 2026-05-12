@@ -123,7 +123,8 @@ local function setupSlot(player, base, slot)
 	end
 
 	prompt.HoldDuration = 0
-	local debounce = false
+	local collectDebounce = false
+	local promptDebounce = false
 
 	-- 初期属性
 	if not placePart:GetAttribute("Level") then placePart:SetAttribute("Level", 1) end
@@ -160,12 +161,12 @@ local function setupSlot(player, base, slot)
 	touchPart.Touched:Connect(function(hit)
 		local char = hit.Parent
 		local p = Players:GetPlayerFromCharacter(char)
-		if p ~= player or debounce then return end
+		if p ~= player or collectDebounce then return end
 
 		local stored = placePart:FindFirstChild("StoredItem")
 		if not stored or not stored.Value then return end
 
-		debounce = true
+		collectDebounce = true
 		local current, _ = updateSlot()
 		if current and current > 0 then
 			local leaderstats = player:FindFirstChild("leaderstats")
@@ -176,7 +177,7 @@ local function setupSlot(player, base, slot)
 			end
 		end
 		task.wait(0.5)
-		debounce = false
+		collectDebounce = false
 	end)
 
 	-- UI (BillboardGui) 作成
@@ -278,11 +279,11 @@ local function setupSlot(player, base, slot)
 
 	-- 処理
 	prompt.Triggered:Connect(function(triggerPlayer)
-		if triggerPlayer ~= player or debounce then return end
-		debounce = true
+		if triggerPlayer ~= player or promptDebounce then return end
+		promptDebounce = true
 
 		local character = player.Character
-		if not character then debounce = false return end
+		if not character then promptDebounce = false return end
 
 		local stored = placePart:FindFirstChild("StoredItem")
 		local hasTreasure = player:FindFirstChild("HasTreasure")
@@ -342,10 +343,10 @@ local function setupSlot(player, base, slot)
 
 			local levelValue = player:FindFirstChild("TreasureLevel")
 			local typeValue = player:FindFirstChild("TreasureType")
-			if not levelValue or not typeValue then debounce = false return end
+			if not levelValue or not typeValue then promptDebounce = false return end
 
 			local template = treasureFolder:FindFirstChild(typeValue.Value)
-			if not template then debounce = false return end
+			if not template then promptDebounce = false return end
 
 			local item = template:Clone()
 			item.Parent = base
@@ -366,7 +367,7 @@ local function setupSlot(player, base, slot)
 			clearTreasure(player, character)
 		end
 
-		debounce = false
+		promptDebounce = false
 	end)
 end
 
