@@ -203,6 +203,26 @@ local function setupSlot(player, base, slot)
 		text.Parent = billboard
 	end
 
+	-- SurfaceGui (上面表示用) 作成
+	local surfaceGui = touchPart:FindFirstChild("SurfaceStatusUI")
+	if not surfaceGui then
+		surfaceGui = Instance.new("SurfaceGui")
+		surfaceGui.Name = "SurfaceStatusUI"
+		surfaceGui.Face = Enum.NormalId.Top
+		surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		surfaceGui.PixelsPerStud = 50
+		surfaceGui.Parent = touchPart
+
+		local text = Instance.new("TextLabel")
+		text.Name = "Label"
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.Font = Enum.Font.GothamBold
+		text.TextScaled = true
+		text.Parent = surfaceGui
+	end
+
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
@@ -225,26 +245,33 @@ local function setupSlot(player, base, slot)
 				prompt.ActionText = "Pick Up"
 				
 				local statusText = "Lv." .. level .. "\n"
+				local coinText = tostring(math.floor(current))
 				if current >= maxCap then
 					statusText = statusText .. "FULL!"
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
+					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					touchPart.Color = Color3.fromRGB(255, 255, 0)
 				else
-					statusText = statusText .. "Coins: " .. math.floor(current)
+					statusText = statusText .. "Coins: " .. coinText
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					touchPart.Color = Color3.fromRGB(163, 162, 165)
 				end
 				billboard.Label.Text = statusText
 				billboard.Enabled = true
+				surfaceGui.Label.Text = coinText
+				surfaceGui.Enabled = true
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
 				billboard.Enabled = false
+				surfaceGui.Enabled = false
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
 				billboard.Enabled = false
+				surfaceGui.Enabled = false
 			end
 		end
 	end)
