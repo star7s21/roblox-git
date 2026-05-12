@@ -227,7 +227,7 @@ local function setupSlot(player, base, slot)
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
-			task.wait(0.2)
+			task.wait(1)
 
 			local stored = placePart:FindFirstChild("StoredItem")
 			local hasTreasure = player:FindFirstChild("HasTreasure")
@@ -245,6 +245,7 @@ local function setupSlot(player, base, slot)
 				prompt.ObjectText = item.Name
 				prompt.ActionText = "Pick Up"
 				
+				local cps, _ = getStats(player, item.Name, level)
 				local statusText = "Lv." .. level .. "\n"
 				local coinText = tostring(math.floor(current))
 				if current >= maxCap then
@@ -253,7 +254,7 @@ local function setupSlot(player, base, slot)
 					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					touchPart.Color = Color3.fromRGB(255, 255, 0)
 				else
-					statusText = statusText .. "Coins: " .. coinText
+					statusText = statusText .. "+" .. math.floor(cps) .. "/s"
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					touchPart.Color = Color3.fromRGB(163, 162, 165)
