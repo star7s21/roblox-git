@@ -11,8 +11,8 @@ local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 -- =========================
 -- スロット管理
 -- =========================
-local SPACING = 100
-local MAX_SLOTS = 10
+local SPACING = 150
+local MAX_SLOTS = 7
 
 local used = {}
 local speedConnections = {}
@@ -27,7 +27,7 @@ local function assignSlot(player)
 			local step = math.ceil(offsetIndex / 2)
 
 			local x = step * SPACING * direction
-			return Vector3.new(x, 10, 0), i
+			return Vector3.new(x, 7.5, 0), i
 		end
 	end
 
