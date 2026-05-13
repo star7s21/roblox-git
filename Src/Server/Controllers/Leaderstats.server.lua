@@ -73,10 +73,11 @@ local function spawnItem(base, data)
 
 	item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
 
+	local yOffset = (placePart.Size.Y / 2) + (item:GetExtentsSize().Y / 2)
 	if item.PrimaryPart then
-		item:PivotTo(placePart.CFrame)
+		item:PivotTo(placePart.CFrame * CFrame.new(0, yOffset, 0))
 	else
-		item:MoveTo(placePart.Position)
+		item:MoveTo((placePart.CFrame * CFrame.new(0, yOffset, 0)).Position)
 	end
 
 	local stored = Instance.new("ObjectValue")

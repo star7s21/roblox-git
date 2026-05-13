@@ -88,6 +88,10 @@ local function getStats(player, typeName, level)
 	return coinsPerSecond, maxCapacity
 end
 
+local function getUpgradeCost(level)
+	return math.floor(100 * (1.8 ^ (level - 1)))
+end
+
 local function applySpeed(player, character)
 	local humanoid = character:WaitForChild("Humanoid")
 	local speed = player:WaitForChild("leaderstats"):WaitForChild("Speed")
@@ -123,6 +127,14 @@ local function setupSlot(player, base, slot)
 	end
 
 	prompt.HoldDuration = 0
+
+	local upgradePrompt = placePart:FindFirstChildOfClass("ProximityPrompt")
+	if not upgradePrompt then
+		upgradePrompt = Instance.new("ProximityPrompt")
+		upgradePrompt.Parent = placePart
+	end
+	upgradePrompt.HoldDuration = 0
+
 	local collectDebounce = false
 	local promptDebounce = false
 
@@ -224,6 +236,26 @@ local function setupSlot(player, base, slot)
 		text.Parent = surfaceGui
 	end
 
+	-- ItemArea UI (側面レベル表示)
+	local itemSurfaceGui = placePart:FindFirstChild("LevelUI")
+	if not itemSurfaceGui then
+		itemSurfaceGui = Instance.new("SurfaceGui")
+		itemSurfaceGui.Name = "LevelUI"
+		itemSurfaceGui.Face = Enum.NormalId.Front
+		itemSurfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		itemSurfaceGui.PixelsPerStud = 50
+		itemSurfaceGui.Parent = placePart
+
+		local text = Instance.new("TextLabel")
+		text.Name = "Label"
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.TextColor3 = Color3.new(1, 1, 0)
+		text.Font = Enum.Font.GothamBold
+		text.TextScaled = true
+		text.Parent = itemSurfaceGui
+	end
+
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
@@ -263,22 +295,57 @@ local function setupSlot(player, base, slot)
 				billboard.Enabled = true
 				surfaceGui.Label.Text = coinText
 				surfaceGui.Enabled = true
+
+				itemSurfaceGui.Label.Text = "Lv." .. level
+				itemSurfaceGui.Enabled = true
+
+				local upCost = getUpgradeCost(level)
+				upgradePrompt.Enabled = true
+				upgradePrompt.ActionText = "Upgrade (" .. upCost .. ")"
+				upgradePrompt.ObjectText = item.Name
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
+				itemSurfaceGui.Enabled = false
+				upgradePrompt.Enabled = false
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
+				itemSurfaceGui.Enabled = false
+				upgradePrompt.Enabled = false
 			end
 		end
 	end)
 
-	-- 処理
+	-- 処理 (レベルアップ)
+	upgradePrompt.Triggered:Connect(function(triggerPlayer)
+		if triggerPlayer ~= player or promptDebounce then return end
+		promptDebounce = true
+
+		local stored = placePart:FindFirstChild("StoredItem")
+		local item = stored and stored.Value
+		if not item then promptDebounce = false return end
+
+		local level = placePart:GetAttribute("Level") or 1
+		local cost = getUpgradeCost(level)
+
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+
+		if coins and coins.Value >= cost then
+			coins.Value -= cost
+			placePart:SetAttribute("Level", level + 1)
+		end
+
+		promptDebounce = false
+	end)
+
+	-- 処理 (配置/回収)
 	prompt.Triggered:Connect(function(triggerPlayer)
 		if triggerPlayer ~= player or promptDebounce then return end
 		promptDebounce = true
@@ -355,10 +422,11 @@ local function setupSlot(player, base, slot)
 			placePart:SetAttribute("CurrentCoins", 0)
 			placePart:SetAttribute("LastUpdateTime", os.clock())
 
+			local yOffset = (placePart.Size.Y / 2) + (item:GetExtentsSize().Y / 2)
 			if item.PrimaryPart then
-				item:PivotTo(placePart.CFrame)
+				item:PivotTo(placePart.CFrame * CFrame.new(0, yOffset, 0))
 			else
-				item:MoveTo(placePart.Position)
+				item:MoveTo((placePart.CFrame * CFrame.new(0, yOffset, 0)).Position)
 			end
 
 			local storedItem = Instance.new("ObjectValue", placePart)
