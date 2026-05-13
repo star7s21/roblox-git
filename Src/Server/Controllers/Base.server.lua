@@ -276,8 +276,16 @@ local function setupSlot(player, base, slot)
 				prompt.ObjectText = item.Name
 				prompt.ActionText = "Pick Up"
 				
+				local rarityName = item.Name
+				for _, t in ipairs(TreasureConfig.Types) do
+					if t.model == item.Name then
+						rarityName = t.name
+						break
+					end
+				end
+
 				local cps, _ = getStats(player, item.Name, level)
-				local statusText = "Lv." .. level .. "\n"
+				local statusText = rarityName .. " Lv." .. level .. "\n"
 				local coinText = tostring(math.floor(current))
 				if current >= maxCap then
 					statusText = statusText .. "FULL!"
@@ -291,6 +299,15 @@ local function setupSlot(player, base, slot)
 					touchPart.Color = Color3.fromRGB(163, 162, 165)
 				end
 				billboard.Label.Text = statusText
+
+				if item.PrimaryPart then
+					billboard.Adornee = item.PrimaryPart
+					billboard.StudsOffset = Vector3.new(0, item:GetExtentsSize().Y / 2 + 2, 0)
+				else
+					billboard.Adornee = touchPart
+					billboard.StudsOffset = Vector3.new(0, 6, 0)
+				end
+
 				billboard.Enabled = true
 				surfaceGui.Label.Text = coinText
 				surfaceGui.Enabled = true
@@ -304,6 +321,7 @@ local function setupSlot(player, base, slot)
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				billboard.Adornee = touchPart
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
@@ -311,6 +329,7 @@ local function setupSlot(player, base, slot)
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				billboard.Adornee = touchPart
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
