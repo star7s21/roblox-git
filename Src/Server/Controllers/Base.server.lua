@@ -128,12 +128,11 @@ local function setupSlot(player, base, slot)
 
 	prompt.HoldDuration = 0
 
-	local upgradePrompt = placePart:FindFirstChildOfClass("ProximityPrompt")
-	if not upgradePrompt then
-		upgradePrompt = Instance.new("ProximityPrompt")
-		upgradePrompt.Parent = placePart
+	local clickDetector = placePart:FindFirstChildOfClass("ClickDetector")
+	if not clickDetector then
+		clickDetector = Instance.new("ClickDetector")
+		clickDetector.Parent = placePart
 	end
-	upgradePrompt.HoldDuration = 0
 
 	local collectDebounce = false
 	local promptDebounce = false
@@ -296,13 +295,11 @@ local function setupSlot(player, base, slot)
 				surfaceGui.Label.Text = coinText
 				surfaceGui.Enabled = true
 
-				itemSurfaceGui.Label.Text = "Lv." .. level
+				local upCost = getUpgradeCost(level)
+				itemSurfaceGui.Label.Text = "Lv." .. level .. " -> " .. (level + 1) .. "\n(" .. upCost .. ")"
 				itemSurfaceGui.Enabled = true
 
-				local upCost = getUpgradeCost(level)
-				upgradePrompt.Enabled = true
-				upgradePrompt.ActionText = "Upgrade (" .. upCost .. ")"
-				upgradePrompt.ObjectText = item.Name
+				clickDetector.MaxActivationDistance = 32
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
@@ -310,20 +307,20 @@ local function setupSlot(player, base, slot)
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
-				upgradePrompt.Enabled = false
+				clickDetector.MaxActivationDistance = 0
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(163, 162, 165)
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
-				upgradePrompt.Enabled = false
+				clickDetector.MaxActivationDistance = 0
 			end
 		end
 	end)
 
 	-- 処理 (レベルアップ)
-	upgradePrompt.Triggered:Connect(function(triggerPlayer)
+	clickDetector.MouseClick:Connect(function(triggerPlayer)
 		if triggerPlayer ~= player or promptDebounce then return end
 		promptDebounce = true
 
