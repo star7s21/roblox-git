@@ -338,7 +338,7 @@ local function setupSlot(player, base, slot)
 		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
 
 		if coins and coins.Value >= cost then
-			coins.Value -= cost
+			coins.Value = coins.Value - cost
 			placePart:SetAttribute("Level", level + 1)
 		end
 
