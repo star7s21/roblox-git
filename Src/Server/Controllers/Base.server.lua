@@ -122,8 +122,13 @@ local function setupSlot(player, base, slot)
 
 	local prompt = touchPart:FindFirstChildOfClass("ProximityPrompt")
 	if not prompt then
+
+		local attachment = Instance.new("Attachment")
+		attachment.Position = Vector3.new(0, 10, 0)
+		attachment.Parent = touchPart
+
 		prompt = Instance.new("ProximityPrompt")
-		prompt.Parent = touchPart
+		prompt.Parent = attachment
 	end
 
 	prompt.HoldDuration = 0
@@ -169,6 +174,7 @@ local function setupSlot(player, base, slot)
 	end
 
 	-- Touched (コイン回収)
+	local surfaceGui = touchPart:FindFirstChild("SurfaceStatusUI")
 	touchPart.Touched:Connect(function(hit)
 		local char = hit.Parent
 		local p = Players:GetPlayerFromCharacter(char)
@@ -185,6 +191,7 @@ local function setupSlot(player, base, slot)
 			if coins then
 				coins.Value = coins.Value + math.floor(current)
 				placePart:SetAttribute("CurrentCoins", 0)
+				surfaceGui.Label.Text = "0"
 			end
 		end
 		task.wait(0.5)
@@ -216,7 +223,6 @@ local function setupSlot(player, base, slot)
 	end
 
 	-- SurfaceGui (上面表示用) 作成
-	local surfaceGui = touchPart:FindFirstChild("SurfaceStatusUI")
 	if not surfaceGui then
 		surfaceGui = Instance.new("SurfaceGui")
 		surfaceGui.Name = "SurfaceStatusUI"
@@ -249,7 +255,7 @@ local function setupSlot(player, base, slot)
 		text.Name = "Label"
 		text.Size = UDim2.new(1, 0, 1, 0)
 		text.BackgroundTransparency = 1
-		text.TextColor3 = Color3.new(1, 1, 0)
+		text.TextColor3 = Color3.new(0,0,0)
 		text.Font = Enum.Font.GothamBold
 		text.TextScaled = true
 		text.Parent = itemSurfaceGui
@@ -296,7 +302,7 @@ local function setupSlot(player, base, slot)
 					statusText = statusText .. "+" .. math.floor(cps) .. "/s"
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-					touchPart.Color = Color3.fromRGB(163, 162, 165)
+					touchPart.Color = Color3.fromRGB(255, 0, 0)
 				end
 				billboard.Label.Text = statusText
 
@@ -320,7 +326,7 @@ local function setupSlot(player, base, slot)
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
-				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				touchPart.Color = Color3.fromRGB(255, 0, 0)
 				billboard.Adornee = touchPart
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
@@ -328,7 +334,7 @@ local function setupSlot(player, base, slot)
 				clickDetector.MaxActivationDistance = 0
 			else
 				prompt.Enabled = false
-				touchPart.Color = Color3.fromRGB(163, 162, 165)
+				touchPart.Color = Color3.fromRGB(255, 0, 0)
 				billboard.Adornee = touchPart
 				billboard.Enabled = false
 				surfaceGui.Enabled = false

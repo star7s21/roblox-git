@@ -46,7 +46,7 @@ prompt.Triggered:Connect(function(player)
 
 	if coins.Value < currentCost then
 		prompt.ActionText = "❌ Not Enough Coins"
-		task.delay(1, function()
+		task.delay(0.5, function()
 			prompt.ActionText = "Upgrade Speed"
 		end)
 		return
@@ -64,7 +64,7 @@ prompt.Triggered:Connect(function(player)
 		costValue.Value = math.floor(currentCost * 1.5)
 	end
 
-	task.delay(1, function()
+	task.delay(0.2, function()
 		debounce[player] = nil
 		prompt.ActionText = "Upgrade Speed"
 	end)

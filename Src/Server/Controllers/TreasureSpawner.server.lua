@@ -112,7 +112,7 @@ for level = 1, 7 do
 	for i = 1, 10 do
 		local x = pos.X + math.random(-size.X/2, size.X/2)
 		local z = pos.Z + math.random(-size.Z/2, size.Z/2)
-		local y = pos.Y + size.Y/2 + 14
+		local y = pos.Y + size.Y/2 + 3
 
 		spawnTreasure(Vector3.new(x, y, z), level)
 	end
