@@ -92,6 +92,20 @@ local function getUpgradeCost(level)
 	return math.floor(100 * (1.8 ^ (level - 1)))
 end
 
+local function getSellPrice(typeName, level)
+	local config = nil
+	for _, t in ipairs(TreasureConfig.Types) do
+		if t.name == typeName or t.model == typeName then
+			config = t
+			break
+		end
+	end
+	if not config then return 0 end
+
+	local baseValue = 50
+	return math.floor(baseValue * config.rarityMultiplier * (1.5 ^ (level - 1)))
+end
+
 local function applySpeed(player, character)
 	local humanoid = character:WaitForChild("Humanoid")
 	local speed = player:WaitForChild("leaderstats"):WaitForChild("Speed")
@@ -120,15 +134,28 @@ local function setupSlot(player, base, slot)
 	local placePart = slot:FindFirstChild("ItemArea")
 	if not touchPart or not placePart then return end
 
-	local prompt = touchPart:FindFirstChildOfClass("ProximityPrompt")
-	if not prompt then
-
-		local attachment = Instance.new("Attachment")
+	local attachment = touchPart:FindFirstChild("PromptAttachment")
+	if not attachment then
+		attachment = Instance.new("Attachment")
+		attachment.Name = "PromptAttachment"
 		attachment.Position = Vector3.new(0, 10, 0)
 		attachment.Parent = touchPart
+	end
 
+	local prompt = attachment:FindFirstChild("ActionPrompt")
+	if not prompt then
 		prompt = Instance.new("ProximityPrompt")
+		prompt.Name = "ActionPrompt"
 		prompt.Parent = attachment
+	end
+
+	local sellPrompt = attachment:FindFirstChild("SellPrompt")
+	if not sellPrompt then
+		sellPrompt = Instance.new("ProximityPrompt")
+		sellPrompt.Name = "SellPrompt"
+		sellPrompt.HoldDuration = 1.0
+		sellPrompt.ActionText = "Sell"
+		sellPrompt.Parent = attachment
 	end
 
 	prompt.HoldDuration = 0
@@ -277,10 +304,14 @@ local function setupSlot(player, base, slot)
 			local canPlace = hasTreasure and not item
 
 			prompt.Enabled = canPickup or canPlace
+			sellPrompt.Enabled = item ~= nil
 
 			if item then
 				prompt.ObjectText = item.Name
 				prompt.ActionText = "Pick Up"
+
+				local sellPrice = getSellPrice(item.Name, level)
+				sellPrompt.ObjectText = item.Name .. " (" .. sellPrice .. ")"
 				
 				local rarityName = item.Name
 				for _, t in ipairs(TreasureConfig.Types) do
@@ -342,6 +373,30 @@ local function setupSlot(player, base, slot)
 				clickDetector.MaxActivationDistance = 0
 			end
 		end
+	end)
+
+	-- 処理 (売却)
+	sellPrompt.Triggered:Connect(function(triggerPlayer)
+		if triggerPlayer ~= player or promptDebounce then return end
+		promptDebounce = true
+
+		local stored = placePart:FindFirstChild("StoredItem")
+		local item = stored and stored.Value
+		if not item then promptDebounce = false return end
+
+		local level = placePart:GetAttribute("Level") or 1
+		local price = getSellPrice(item.Name, level)
+
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+
+		if coins then
+			coins.Value = coins.Value + price
+			item:Destroy()
+			stored:Destroy()
+		end
+
+		promptDebounce = false
 	end)
 
 	-- 処理 (レベルアップ)
