@@ -4,6 +4,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local TreasureConfig = require(game:GetService("ServerScriptService").Server.Services.TreasureConfig)
 
+local function formatNumber(n)
+	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
+	local i = 1
+	local val = n
+	while val >= 1000 and i < #suffixes do
+		val = val / 1000
+		i = i + 1
+	end
+	return i == 1 and tostring(math.floor(val)) or string.format("%.1f%s", val, suffixes[i])
+end
+
 local goal = workspace:WaitForChild("StartArea")
 local baseTemplate = ServerStorage:WaitForChild("BaseModel")
 local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
@@ -325,7 +336,7 @@ local function setupSlot(player, base, slot)
 				prompt.ActionText = "Pick Up"
 
 				local sellPrice = getSellPrice(item.Name, level)
-				sellPrompt.ObjectText = item.Name .. " (" .. sellPrice .. ")"
+				sellPrompt.ObjectText = item.Name .. " (" .. formatNumber(sellPrice) .. ")"
 				
 				local rarityName = item.Name
 				for _, t in ipairs(TreasureConfig.Types) do
@@ -337,14 +348,15 @@ local function setupSlot(player, base, slot)
 
 				local cps, _ = getStats(player, item.Name, level)
 				local statusText = rarityName .. " Lv." .. level .. "\n"
-				local coinText = tostring(math.floor(current))
+				local coinText = formatNumber(current)
 				if current >= maxCap then
 					statusText = statusText .. "FULL!"
+					coinText = "FULL\n" .. coinText
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 					touchPart.Color = Color3.fromRGB(255, 255, 0)
 				else
-					statusText = statusText .. "+" .. math.floor(cps) .. "/s"
+					statusText = statusText .. "+" .. formatNumber(cps) .. "/s"
 					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 					touchPart.Color = Color3.fromRGB(255, 0, 0)
@@ -364,7 +376,7 @@ local function setupSlot(player, base, slot)
 				surfaceGui.Enabled = true
 
 				local upCost = getUpgradeCost(level)
-				itemSurfaceGui.Label.Text = "Lv." .. level .. " -> " .. (level + 1) .. "\n(" .. upCost .. ")"
+				itemSurfaceGui.Label.Text = "Lv." .. level .. " -> " .. (level + 1) .. "\n(" .. formatNumber(upCost) .. ")"
 				itemSurfaceGui.Enabled = true
 
 				clickDetector.MaxActivationDistance = 32
