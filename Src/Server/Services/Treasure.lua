@@ -13,7 +13,7 @@ function module.setupTreasure(treasure)
 	prompt.ObjectText = treasure:GetAttribute("Model") or treasure.Name
 	prompt.HoldDuration = 1.0
 	prompt.RequiresLineOfSight = false
-	prompt.MaxActivationDistance = 10
+	prompt.MaxActivationDistance = 15
 	prompt.Parent = attachment
 
 	prompt.Triggered:Connect(function(player)

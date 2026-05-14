@@ -146,7 +146,7 @@ local function setupSlot(player, base, slot)
 	if not sellAttachment then
 		sellAttachment = Instance.new("Attachment")
 		sellAttachment.Name = "SellPromptAttachment"
-		sellAttachment.Position = Vector3.new(0, 15, 0)
+		sellAttachment.Position = Vector3.new(0, 13, 0)
 		sellAttachment.Parent = touchPart
 	end
 
@@ -156,6 +156,7 @@ local function setupSlot(player, base, slot)
 		prompt.Name = "ActionPrompt"
 		prompt.KeyboardKeyCode = Enum.KeyCode.E
 		prompt.RequiresLineOfSight = false
+		prompt.MaxActivationDistance = 20
 		prompt.Parent = attachment
 	end
 
@@ -167,6 +168,7 @@ local function setupSlot(player, base, slot)
 		sellPrompt.ActionText = "Sell"
 		sellPrompt.KeyboardKeyCode = Enum.KeyCode.F
 		sellPrompt.RequiresLineOfSight = false
+		sellPrompt.MaxActivationDistance = 20
 		sellPrompt.Parent = sellAttachment
 	end
 
