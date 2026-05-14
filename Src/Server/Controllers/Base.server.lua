@@ -138,7 +138,7 @@ local function setupSlot(player, base, slot)
 	if not attachment then
 		attachment = Instance.new("Attachment")
 		attachment.Name = "PromptAttachment"
-		attachment.Position = Vector3.new(0, 10, 0)
+		attachment.Position = Vector3.new(-4, 8, 0)
 		attachment.Parent = touchPart
 	end
 
@@ -146,7 +146,7 @@ local function setupSlot(player, base, slot)
 	if not sellAttachment then
 		sellAttachment = Instance.new("Attachment")
 		sellAttachment.Name = "SellPromptAttachment"
-		sellAttachment.Position = Vector3.new(0, 13, 0)
+		sellAttachment.Position = Vector3.new(4, 8, 0)
 		sellAttachment.Parent = touchPart
 	end
 
