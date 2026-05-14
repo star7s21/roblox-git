@@ -142,6 +142,14 @@ local function setupSlot(player, base, slot)
 		attachment.Parent = touchPart
 	end
 
+	local sellAttachment = touchPart:FindFirstChild("SellPromptAttachment")
+	if not sellAttachment then
+		sellAttachment = Instance.new("Attachment")
+		sellAttachment.Name = "SellPromptAttachment"
+		sellAttachment.Position = Vector3.new(0, 15, 0)
+		sellAttachment.Parent = touchPart
+	end
+
 	local prompt = attachment:FindFirstChild("ActionPrompt")
 	if not prompt then
 		prompt = Instance.new("ProximityPrompt")
@@ -151,7 +159,7 @@ local function setupSlot(player, base, slot)
 		prompt.Parent = attachment
 	end
 
-	local sellPrompt = attachment:FindFirstChild("SellPrompt")
+	local sellPrompt = sellAttachment:FindFirstChild("SellPrompt")
 	if not sellPrompt then
 		sellPrompt = Instance.new("ProximityPrompt")
 		sellPrompt.Name = "SellPrompt"
@@ -159,7 +167,7 @@ local function setupSlot(player, base, slot)
 		sellPrompt.ActionText = "Sell"
 		sellPrompt.KeyboardKeyCode = Enum.KeyCode.F
 		sellPrompt.RequiresLineOfSight = false
-		sellPrompt.Parent = attachment
+		sellPrompt.Parent = sellAttachment
 	end
 
 	prompt.HoldDuration = 0
@@ -304,7 +312,7 @@ local function setupSlot(player, base, slot)
 
 			local current, maxCap = updateSlot()
 
-			local canPickup = item ~= nil
+			local canPickup = item ~= nil and not hasTreasure
 			local canPlace = hasTreasure and not item
 
 			prompt.Enabled = canPickup or canPlace
