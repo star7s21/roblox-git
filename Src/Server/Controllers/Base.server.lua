@@ -300,7 +300,7 @@ local function setupSlot(player, base, slot)
 
 			local current, maxCap = updateSlot()
 
-			local canPickup = item and not hasTreasure
+			local canPickup = item ~= nil
 			local canPlace = hasTreasure and not item
 
 			prompt.Enabled = canPickup or canPlace

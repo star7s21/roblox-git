@@ -1,7 +1,7 @@
 local module = {}
 
 function module.setupTreasure(treasure)
-	local primary = treasure.PrimaryPart or treasure:FindFirstChildWhichIsA("BasePart")
+	local primary = (treasure:IsA("BasePart") and treasure) or treasure.PrimaryPart or treasure:FindFirstChildWhichIsA("BasePart")
 	if not primary then return end
 
 	local attachment = Instance.new("Attachment")
