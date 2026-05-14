@@ -146,6 +146,8 @@ local function setupSlot(player, base, slot)
 	if not prompt then
 		prompt = Instance.new("ProximityPrompt")
 		prompt.Name = "ActionPrompt"
+		prompt.KeyboardKeyCode = Enum.KeyCode.E
+		prompt.RequiresLineOfSight = false
 		prompt.Parent = attachment
 	end
 
@@ -155,6 +157,8 @@ local function setupSlot(player, base, slot)
 		sellPrompt.Name = "SellPrompt"
 		sellPrompt.HoldDuration = 1.0
 		sellPrompt.ActionText = "Sell"
+		sellPrompt.KeyboardKeyCode = Enum.KeyCode.F
+		sellPrompt.RequiresLineOfSight = false
 		sellPrompt.Parent = attachment
 	end
 
