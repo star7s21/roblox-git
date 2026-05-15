@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
 
 local TreasureConfig = require(game:GetService("ServerScriptService").Server.Services.TreasureConfig)
 
@@ -560,7 +561,7 @@ local function createBase(player)
 
 	local pos, slotIndex = assignSlot(player)
 	if not pos then
-		player:Kick("Server is full")
+		TeleportService:Teleport(game.PlaceId, player)
 		return nil
 	end
 
