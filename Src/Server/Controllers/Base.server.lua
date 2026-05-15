@@ -612,8 +612,12 @@ local function setupBaseUpgradeButton(player, base)
 			local cost = getBaseUpgradeCost(level + 1)
 			prompt.ObjectText = "Level " .. (level + 1)
 			label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
+			prompt.Enabled = true
+			button.Transparency = 0
 		end
 	end
+
+	base:GetAttributeChangedSignal("BaseLevel"):Connect(updateButton)
 
 	prompt.Triggered:Connect(function(triggerPlayer)
 		if triggerPlayer ~= player then return end
@@ -628,6 +632,9 @@ local function setupBaseUpgradeButton(player, base)
 			coins.Value = coins.Value - cost
 			local nextLevel = level + 1
 			base:SetAttribute("BaseLevel", nextLevel)
+
+			local baseLevelStat = leaderstats:FindFirstChild("BaseLevel")
+			if baseLevelStat then baseLevelStat.Value = nextLevel end
 
 			-- 新しい階層を積み上げる
 			local newFloor = baseTemplate:Clone()
@@ -689,7 +696,7 @@ local function createBase(player)
 	-- ユーザー名表示 (BillboardGui)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "OwnerTag"
-	billboard.Size = UDim2.new(0, 500, 0, 150)
+	billboard.Size = UDim2.new(0, 250, 0, 75)
 	billboard.StudsOffset = Vector3.new(0, 30, 0)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
@@ -720,6 +727,35 @@ local function handlePlayer(player)
 	playerBases[player] = base
 
 	setupFloor(player, base, base)
+
+	-- ロードされたレベルに合わせて階層を復元
+	task.spawn(function()
+		local leaderstats = player:WaitForChild("leaderstats", 10)
+		if not leaderstats then return end
+		local baseLevelStat = leaderstats:WaitForChild("BaseLevel", 10)
+		if not baseLevelStat then return end
+
+		local targetLevel = baseLevelStat.Value
+		for i = 2, targetLevel do
+			local nextLevel = i
+
+			local newFloor = baseTemplate:Clone()
+			newFloor.Name = "Floor" .. nextLevel
+			newFloor.Parent = base
+
+			local floorHeight = 30
+			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
+
+			setupFloor(player, base, newFloor)
+			base:SetAttribute("BaseLevel", nextLevel)
+
+			-- オーナー名タグを最新の階の頂上へ移動
+			local ownerTag = base:FindFirstChild("OwnerTag")
+			if ownerTag then
+				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
+			end
+		end
+	end)
 
 	local function handleCharacter(character)
 		clearTreasure(player, character)

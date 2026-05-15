@@ -31,19 +31,30 @@ end
 local function collectBaseData(base)
 	local result = {}
 
-	local baseFolder = base:FindFirstChild("Base")
-	if not baseFolder then return result end
+	local function scan(container, floorNum)
+		local baseFolder = container:FindFirstChild("Base")
+		if not baseFolder then return end
 
-	for _, slot in ipairs(baseFolder:GetChildren()) do
-		local placePart = slot:FindFirstChild("ItemArea")
-		local stored = placePart and placePart:FindFirstChild("StoredItem")
+		for _, slot in ipairs(baseFolder:GetChildren()) do
+			local placePart = slot:FindFirstChild("ItemArea")
+			local stored = placePart and placePart:FindFirstChild("StoredItem")
 
-		if stored and stored.Value and stored.Value.Parent then
-			table.insert(result, {
-				slot = slot.Name,
-				type = stored.Value.Name,
-				level = placePart:GetAttribute("Level") or 1
-			})
+			if stored and stored.Value and stored.Value.Parent then
+				table.insert(result, {
+					floor = floorNum,
+					slot = slot.Name,
+					type = stored.Value.Name,
+					level = placePart:GetAttribute("Level") or 1
+				})
+			end
+		end
+	end
+
+	scan(base, 1)
+	for i = 2, 10 do
+		local floor = base:FindFirstChild("Floor" .. i)
+		if floor then
+			scan(floor, i)
 		end
 	end
 
@@ -58,7 +69,13 @@ local function spawnItem(base, data)
 
 	local folder = ReplicatedStorage:WaitForChild("Treasures")
 
-	local slot = base.Base:FindFirstChild(data.slot)
+	local floorModel = base
+	if data.floor and data.floor > 1 then
+		floorModel = base:FindFirstChild("Floor" .. data.floor)
+	end
+	if not floorModel or not floorModel:FindFirstChild("Base") then return end
+
+	local slot = floorModel.Base:FindFirstChild(data.slot)
 	if not slot then return end
 
 	local placePart = slot:FindFirstChild("ItemArea")
@@ -109,6 +126,10 @@ Players.PlayerAdded:Connect(function(player)
 	rebirths.Name = "Rebirths"
 	rebirths.Value = 0
 
+	local baseLevel = Instance.new("IntValue", leaderstats)
+	baseLevel.Name = "BaseLevel"
+	baseLevel.Value = 1
+
 	local upgradeCost = Instance.new("IntValue", player)
 	upgradeCost.Name = "UpgradeCost"
 	upgradeCost.Value = 50
@@ -139,6 +160,7 @@ Players.PlayerAdded:Connect(function(player)
 	if data then
 		coins.Value = data.Coins or 0
 		rebirths.Value = data.Rebirths or 0
+		baseLevel.Value = data.BaseLevel or 1
 
 		-- 🔥 Speedバグ防止
 		if data.Speed and data.Speed > 0 then
@@ -169,6 +191,8 @@ Players.PlayerAdded:Connect(function(player)
 
 		-- 復元
 		if data and data.BaseItems then
+			-- 階層の復元を少し待つ (Base.server.luaの処理)
+			task.wait(1.5)
 			for _, item in ipairs(data.BaseItems) do
 				spawnItem(base, item)
 			end
@@ -191,6 +215,7 @@ local function save(player)
 
 		Coins = leaderstats:FindFirstChild("Coins") and leaderstats.Coins.Value or 0,
 		Rebirths = leaderstats:FindFirstChild("Rebirths") and leaderstats.Rebirths.Value or 0,
+		BaseLevel = leaderstats:FindFirstChild("BaseLevel") and leaderstats.BaseLevel.Value or 1,
 
 		-- 🔥 Speed安全保存
 		Speed = math.max(
