@@ -630,7 +630,7 @@ local function setupBaseUpgradeButton(player, base)
 			newFloor.Name = "Floor" .. nextLevel
 			newFloor.Parent = base
 
-			local floorHeight = 15 -- BaseModelの高さ（調整が必要な場合はここを変更）
+			local floorHeight = 30 -- BaseModelの高さ（調整が必要な場合はここを変更）
 			newFloor:PivotTo(primary.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
 
 			setupFloor(player, base, newFloor)
@@ -727,11 +727,11 @@ Players.PlayerAdded:Connect(function(player)
 		clearTreasure(player, character)
 		applySpeed(player, character)
 
-		-- 基地の前にスポーン
+		-- 基地の中央にスポーン
 		task.defer(function()
 			if base and base.PrimaryPart then
-				-- 基地の正面方向にスポーン位置をオフセット
-				local spawnCFrame = base.PrimaryPart.CFrame * CFrame.new(0, 5, 30)
+				-- 基地の中央にスポーン位置を設定
+				local spawnCFrame = base.PrimaryPart.CFrame * CFrame.new(0, 5, 0)
 				character:PivotTo(spawnCFrame)
 			end
 		end)
