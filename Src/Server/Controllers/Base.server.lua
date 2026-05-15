@@ -561,7 +561,13 @@ local function createBase(player)
 
 	local pos, slotIndex = assignSlot(player)
 	if not pos then
-		TeleportService:Teleport(game.PlaceId, player)
+		local success, result = pcall(function()
+			return TeleportService:TeleportAsync(game.PlaceId, {player})
+		end)
+		if not success then
+			warn("TeleportAsync failed: " .. tostring(result))
+			player:Kick("Server is full and teleport failed.")
+		end
 		return nil
 	end
 
