@@ -25,6 +25,7 @@ local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 -- =========================
 local SPACING = 150
 local MAX_SLOTS = 7
+local MAX_BASE_LEVEL = 4
 
 local used = {}
 local speedConnections = {}
@@ -105,6 +106,10 @@ local function getUpgradeCost(level)
 	return math.floor(100 * (1.8 ^ (level - 1)))
 end
 
+local function getBaseUpgradeCost(level)
+	return math.floor(10000 * (4 ^ (level - 1)))
+end
+
 local function getSellPrice(typeName, level)
 	local config = nil
 	for _, t in ipairs(TreasureConfig.Types) do
@@ -141,6 +146,18 @@ end
 -- =========================
 -- SLOT
 -- =========================
+local function setupFloor(player, base, floorModel)
+	local slotsFolder = floorModel:FindFirstChild("Base")
+	if not slotsFolder then return end
+	for _, slot in ipairs(slotsFolder:GetChildren()) do
+		if slot:IsA("Model") then
+			-- setupSlot は後ほど定義されるため、この関数の位置に注意が必要ですが、
+			-- Luaでは呼び出し時に定義されていれば良いため、このまま進めます。
+			setupSlot(player, base, slot)
+		end
+	end
+end
+
 local function setupSlot(player, base, slot)
 
 	local touchPart = slot:FindFirstChild("TouchArea")
@@ -545,6 +562,92 @@ local function setupSlot(player, base, slot)
 	end)
 end
 
+local function setupBaseUpgradeButton(player, base)
+	local primary = base.PrimaryPart
+	if not primary then return end
+
+	local button = Instance.new("Part")
+	button.Name = "UpgradeButton"
+	button.Size = Vector3.new(10, 1, 10)
+	button.CFrame = primary.CFrame * CFrame.new(0, -primary.Size.Y/2 + 0.5, 35)
+	button.Color = Color3.fromRGB(0, 255, 0)
+	button.Anchored = true
+	button.Parent = base
+
+	local attachment = Instance.new("Attachment", button)
+	attachment.Position = Vector3.new(0, 2, 0)
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.ActionText = "Upgrade Base"
+	prompt.ObjectText = "Level 1"
+	prompt.KeyboardKeyCode = Enum.KeyCode.G
+	prompt.Parent = attachment
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.new(0, 200, 0, 100)
+	billboard.StudsOffset = Vector3.new(0, 5, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = button
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextStrokeTransparency = 0
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.Parent = billboard
+
+	local function updateButton()
+		local level = base:GetAttribute("BaseLevel") or 1
+		if level >= MAX_BASE_LEVEL then
+			prompt.Enabled = false
+			label.Text = "MAX LEVEL"
+			button.Transparency = 0.5
+		else
+			local cost = getBaseUpgradeCost(level + 1)
+			prompt.ObjectText = "Level " .. (level + 1)
+			label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
+		end
+	end
+
+	prompt.Triggered:Connect(function(triggerPlayer)
+		if triggerPlayer ~= player then return end
+		local level = base:GetAttribute("BaseLevel") or 1
+		if level >= MAX_BASE_LEVEL then return end
+
+		local cost = getBaseUpgradeCost(level + 1)
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+
+		if coins and coins.Value >= cost then
+			coins.Value = coins.Value - cost
+			local nextLevel = level + 1
+			base:SetAttribute("BaseLevel", nextLevel)
+
+			-- 新しい階層を積み上げる
+			local newFloor = baseTemplate:Clone()
+			newFloor.Name = "Floor" .. nextLevel
+			newFloor.Parent = base
+
+			local floorHeight = 15 -- BaseModelの高さ（調整が必要な場合はここを変更）
+			newFloor:PivotTo(primary.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
+
+			setupFloor(player, base, newFloor)
+
+			-- オーナー名タグを最新の階の頂上へ移動
+			local ownerTag = base:FindFirstChild("OwnerTag")
+			if ownerTag then
+				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
+			end
+
+			updateButton()
+		end
+	end)
+
+	updateButton()
+end
+
 -- =========================
 -- Base生成
 -- =========================
@@ -558,8 +661,9 @@ local function createBase(player)
 	base.Parent = workspace
 
 	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
+	base:SetAttribute("BaseLevel", 1)
 
-local pos, slotIndex = assignSlot(player)
+	local pos, slotIndex = assignSlot(player)
 
 	if not pos then
 		local success, result = pcall(function()
@@ -603,6 +707,8 @@ local pos, slotIndex = assignSlot(player)
 	label.TextScaled = true
 	label.Parent = billboard
 
+	setupBaseUpgradeButton(player, base)
+
 	return base
 end
 
@@ -615,11 +721,7 @@ Players.PlayerAdded:Connect(function(player)
 	if not base then return end
 	playerBases[player] = base
 
-	for _, slot in ipairs(base.Base:GetChildren()) do
-		if slot:IsA("Model") then
-			setupSlot(player, base, slot)
-		end
-	end
+	setupFloor(player, base, base)
 
 	player.CharacterAdded:Connect(function(character)
 		clearTreasure(player, character)
