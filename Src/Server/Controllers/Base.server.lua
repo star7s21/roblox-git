@@ -27,6 +27,7 @@ local MAX_SLOTS = 7
 
 local used = {}
 local speedConnections = {}
+local playerBases = {}
 
 local function assignSlot(player)
 	for i = 1, MAX_SLOTS do
@@ -569,6 +570,26 @@ local function createBase(player)
 		base:MoveTo((goal.CFrame + pos).Position)
 	end
 
+	-- ユーザー名表示 (BillboardGui)
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "OwnerTag"
+	billboard.Size = UDim2.new(0, 500, 0, 150)
+	billboard.StudsOffset = Vector3.new(0, 30, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
+	billboard.Parent = base
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = player.DisplayName .. "'s Base"
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.TextStrokeTransparency = 0
+	label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.Parent = billboard
+
 	return base
 end
 
@@ -579,6 +600,7 @@ Players.PlayerAdded:Connect(function(player)
 
 	local base = createBase(player)
 	if not base then return end
+	playerBases[player] = base
 
 	for _, slot in ipairs(base.Base:GetChildren()) do
 		if slot:IsA("Model") then
@@ -589,12 +611,22 @@ Players.PlayerAdded:Connect(function(player)
 	player.CharacterAdded:Connect(function(character)
 		clearTreasure(player, character)
 		applySpeed(player, character)
+
+		-- 基地の前にスポーン
+		task.defer(function()
+			if base and base.PrimaryPart then
+				-- 基地の正面方向にスポーン位置をオフセット
+				local spawnCFrame = base.PrimaryPart.CFrame * CFrame.new(0, 5, 30)
+				character:PivotTo(spawnCFrame)
+			end
+		end)
 	end)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
 
 	releaseSlot(player)
+	playerBases[player] = nil
 
 	if speedConnections[player] then
 		speedConnections[player]:Disconnect()
