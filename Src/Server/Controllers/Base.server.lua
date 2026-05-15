@@ -152,18 +152,6 @@ end
 -- =========================
 -- SLOT
 -- =========================
-local function setupFloor(player, base, floorModel)
-	local slotsFolder = floorModel:FindFirstChild("Base")
-	if not slotsFolder then return end
-	for _, slot in ipairs(slotsFolder:GetChildren()) do
-		if slot:IsA("Model") then
-			-- setupSlot は後ほど定義されるため、この関数の位置に注意が必要ですが、
-			-- Luaでは呼び出し時に定義されていれば良いため、このまま進めます。
-			setupSlot(player, base, slot)
-		end
-	end
-end
-
 local function setupSlot(player, base, slot)
 
 	local touchPart = slot:FindFirstChild("TouchArea")
@@ -568,6 +556,16 @@ local function setupSlot(player, base, slot)
 	end)
 end
 
+local function setupFloor(player, base, floorModel)
+	local slotsFolder = floorModel:FindFirstChild("Base")
+	if not slotsFolder then return end
+	for _, slot in ipairs(slotsFolder:GetChildren()) do
+		if slot:IsA("Model") then
+			setupSlot(player, base, slot)
+		end
+	end
+end
+
 local function setupBaseUpgradeButton(player, base)
 	local primary = base.PrimaryPart
 	if not primary then return end
@@ -729,8 +727,8 @@ local function handlePlayer(player)
 
 		-- 基地の中央にスポーン
 		task.spawn(function()
-			-- キャラクターが物理的に安定するのを少し待つ
-			task.wait(0.2)
+			-- キャラクターが物理的に安定し、Robloxのデフォルトスポーン処理が終わるのを待つ
+			task.wait(0.5)
 			if base and base.PrimaryPart then
 				-- 基地の中央にスポーン位置を設定
 				character:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
