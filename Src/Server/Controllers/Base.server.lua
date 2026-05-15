@@ -559,13 +559,19 @@ local function createBase(player)
 
 	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
 
-	local pos, slotIndex = assignSlot(player)
+local pos, slotIndex = assignSlot(player)
+
 	if not pos then
 		local success, result = pcall(function()
-			return TeleportService:TeleportAsync(game.PlaceId, {player})
+			local code = TeleportService:ReserveServer(game.PlaceId)
+			return TeleportService:TeleportToPrivateServer(
+				game.PlaceId,
+				code,
+				{player}
+			)
 		end)
 		if not success then
-			warn("TeleportAsync failed: " .. tostring(result))
+			warn("Teleport failed: " .. tostring(result))
 			player:Kick("Server is full and teleport failed.")
 		end
 		return nil
