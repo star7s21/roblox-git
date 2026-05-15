@@ -16,7 +16,7 @@ local function formatNumber(n)
 	return i == 1 and tostring(math.floor(val)) or string.format("%.1f%s", val, suffixes[i])
 end
 
-local goal = workspace:WaitForChild("StartArea")
+local goal = workspace:WaitForChild("StartArea", 10) or { CFrame = CFrame.new(0, 7.5, 0) }
 local baseTemplate = ServerStorage:WaitForChild("BaseModel")
 local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 
@@ -125,21 +125,27 @@ local function getSellPrice(typeName, level)
 end
 
 local function applySpeed(player, character)
-	local humanoid = character:WaitForChild("Humanoid")
-	local speed = player:WaitForChild("leaderstats"):WaitForChild("Speed")
+	task.spawn(function()
+		local humanoid = character:WaitForChild("Humanoid", 10)
+		local leaderstats = player:WaitForChild("leaderstats", 10)
+		if not leaderstats then return end
+		local speed = leaderstats:WaitForChild("Speed", 10)
 
-	humanoid.WalkSpeed = speed.Value
+		if not humanoid or not speed then return end
 
-	-- 古い接続があれば解除
-	if speedConnections[player] then
-		speedConnections[player]:Disconnect()
-	end
+		humanoid.WalkSpeed = speed.Value
 
-	-- 新しいキャラクターのHumanoidに対して接続
-	speedConnections[player] = speed.Changed:Connect(function()
-		if humanoid and humanoid.Parent then
-			humanoid.WalkSpeed = speed.Value
+		-- 古い接続があれば解除
+		if speedConnections[player] then
+			speedConnections[player]:Disconnect()
 		end
+
+		-- 新しいキャラクターのHumanoidに対して接続
+		speedConnections[player] = speed.Changed:Connect(function()
+			if humanoid and humanoid.Parent then
+				humanoid.WalkSpeed = speed.Value
+			end
+		end)
 	end)
 end
 
@@ -656,23 +662,11 @@ local function createBase(player)
 	local old = workspace:FindFirstChild(player.Name .. "_Base")
 	if old then old:Destroy() end
 
-	local base = baseTemplate:Clone()
-	base.Name = player.Name .. "_Base"
-	base.Parent = workspace
-
-	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
-	base:SetAttribute("BaseLevel", 1)
-
 	local pos, slotIndex = assignSlot(player)
 
 	if not pos then
 		local success, result = pcall(function()
-			local code = TeleportService:ReserveServer(game.PlaceId)
-			return TeleportService:TeleportToPrivateServer(
-				game.PlaceId,
-				code,
-				{player}
-			)
+			return TeleportService:TeleportAsync(game.PlaceId, {player})
 		end)
 		if not success then
 			warn("Teleport failed: " .. tostring(result))
@@ -680,6 +674,13 @@ local function createBase(player)
 		end
 		return nil
 	end
+
+	local base = baseTemplate:Clone()
+	base.Name = player.Name .. "_Base"
+	base.Parent = workspace
+
+	base.PrimaryPart = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
+	base:SetAttribute("BaseLevel", 1)
 
 	if base.PrimaryPart then
 		base:PivotTo(goal.CFrame + pos)
@@ -715,28 +716,39 @@ end
 -- =========================
 -- Player
 -- =========================
-Players.PlayerAdded:Connect(function(player)
-
+local function handlePlayer(player)
 	local base = createBase(player)
 	if not base then return end
 	playerBases[player] = base
 
 	setupFloor(player, base, base)
 
-	player.CharacterAdded:Connect(function(character)
+	local function handleCharacter(character)
 		clearTreasure(player, character)
 		applySpeed(player, character)
 
 		-- 基地の中央にスポーン
-		task.defer(function()
+		task.spawn(function()
+			-- キャラクターが物理的に安定するのを少し待つ
+			task.wait(0.2)
 			if base and base.PrimaryPart then
 				-- 基地の中央にスポーン位置を設定
-				local spawnCFrame = base.PrimaryPart.CFrame * CFrame.new(0, 5, 0)
-				character:PivotTo(spawnCFrame)
+				character:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
 			end
 		end)
-	end)
-end)
+	end
+
+	player.CharacterAdded:Connect(handleCharacter)
+	if player.Character then
+		handleCharacter(player.Character)
+	end
+end
+
+Players.PlayerAdded:Connect(handlePlayer)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	task.spawn(handlePlayer, player)
+end
 
 Players.PlayerRemoving:Connect(function(player)
 
