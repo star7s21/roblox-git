@@ -170,6 +170,8 @@ Players.PlayerAdded:Connect(function(player)
 		upgradeCost.Value = data.UpgradeCost or 50
 	end
 
+	player:SetAttribute("DataLoaded", true)
+
 	-- =========================
 	-- Base復元
 	-- =========================

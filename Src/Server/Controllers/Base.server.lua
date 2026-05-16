@@ -588,8 +588,8 @@ local function setupBaseUpgradeButton(player, base)
 	prompt.Parent = attachment
 
 	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.new(0, 200, 0, 100)
-	billboard.StudsOffset = Vector3.new(0, 5, 0)
+	billboard.Size = UDim2.new(0, 100, 0, 50)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
 	billboard.AlwaysOnTop = true
 	billboard.Parent = button
 
@@ -696,8 +696,8 @@ local function createBase(player)
 	-- ユーザー名表示 (BillboardGui)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "OwnerTag"
-	billboard.Size = UDim2.new(0, 250, 0, 75)
-	billboard.StudsOffset = Vector3.new(0, 30, 0)
+	billboard.Size = UDim2.new(0, 150, 0, 45)
+	billboard.StudsOffset = Vector3.new(0, 20, 0)
 	billboard.AlwaysOnTop = true
 	billboard.Adornee = base.PrimaryPart or base:FindFirstChildWhichIsA("BasePart")
 	billboard.Parent = base
@@ -730,6 +730,11 @@ local function handlePlayer(player)
 
 	-- ロードされたレベルに合わせて階層を復元
 	task.spawn(function()
+		-- データのロード完了を待つ
+		while not player:GetAttribute("DataLoaded") do
+			task.wait(0.1)
+		end
+
 		local leaderstats = player:WaitForChild("leaderstats", 10)
 		if not leaderstats then return end
 		local baseLevelStat = leaderstats:WaitForChild("BaseLevel", 10)
