@@ -623,7 +623,7 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 	if not gui then
 		gui = Instance.new("SurfaceGui")
 		gui.Name = "UpgradeUI"
-		gui.Face = Enum.NormalId.Right -- 側面に表示
+		gui.Face = Enum.NormalId.Front
 		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
 		gui.PixelsPerStud = 50
 		gui.Parent = displayPart
