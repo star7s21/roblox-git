@@ -347,60 +347,62 @@ local function setupSlot(player, base, slot)
 				sellPrompt.Enabled = (item ~= nil)
 
 				if item then
-				prompt.ObjectText = item.Name
-				prompt.ActionText = "Pick Up"
+					prompt.ObjectText = item.Name
+					prompt.ActionText = "Pick Up"
 
-				local sellPrice = getSellPrice(item.Name, level)
-				sellPrompt.ObjectText = item.Name .. " (" .. formatNumber(sellPrice) .. ")"
-				
-				local rarityName = item.Name
-				for _, t in ipairs(TreasureConfig.Types) do
-					if t.model == item.Name then
-						rarityName = t.name
-						break
+					local sellPrice = getSellPrice(item.Name, level)
+					sellPrompt.ObjectText = item.Name .. " (" .. formatNumber(sellPrice) .. ")"
+					
+					local rarityName = item.Name
+					for _, t in ipairs(TreasureConfig.Types) do
+						if t.model == item.Name then
+							rarityName = t.name
+							break
+						end
 					end
-				end
 
-				local cps, _ = getStats(player, item.Name, level)
-				local statusText = rarityName .. " Lv." .. level .. "\n"
-				local coinText = formatNumber(current)
-				if current >= maxCap then
-					statusText = statusText .. "FULL!"
-					coinText = "FULL\n" .. coinText
-					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
-					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
-					touchPart.Color = Color3.fromRGB(255, 255, 0)
-				else
-					statusText = statusText .. "+" .. formatNumber(cps) .. "/s"
-					billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-					surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-					touchPart.Color = Color3.fromRGB(255, 0, 0)
-				end
-				billboard.Label.Text = statusText
+					local cps, _ = getStats(player, item.Name, level)
+					local statusText = rarityName .. " Lv." .. level .. "\n"
+					local coinText = formatNumber(current)
+					if current >= maxCap then
+						statusText = statusText .. "FULL!"
+						coinText = "FULL\n" .. coinText
+						billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
+						surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
+						touchPart.Color = Color3.fromRGB(255, 255, 0)
+					else
+						statusText = statusText .. "+" .. formatNumber(cps) .. "/s"
+						billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+						surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+						touchPart.Color = Color3.fromRGB(255, 0, 0)
+					end
+					billboard.Label.Text = statusText
 
-				if item.PrimaryPart then
-					billboard.Adornee = item.PrimaryPart
-					billboard.StudsOffset = Vector3.new(0, item:GetExtentsSize().Y / 2 + 2, 0)
-				else
-					billboard.Adornee = touchPart
-					billboard.StudsOffset = Vector3.new(0, 6, 0)
-				end
+					if item.PrimaryPart then
+						billboard.Adornee = item.PrimaryPart
+						billboard.StudsOffset = Vector3.new(0, item:GetExtentsSize().Y / 2 + 2, 0)
+					else
+						billboard.Adornee = touchPart
+						billboard.StudsOffset = Vector3.new(0, 6, 0)
+					end
 
-				billboard.Enabled = true
-				surfaceGui.Label.Text = coinText
-				surfaceGui.Enabled = true
+					billboard.Enabled = true
+					surfaceGui.Label.Text = coinText
+					surfaceGui.Enabled = true
 
-				local upCost = getUpgradeCost(level)
-				itemSurfaceGui.Label.Text = "Lv." .. level .. " -> " .. (level + 1) .. "\n(" .. formatNumber(upCost) .. ")"
-				itemSurfaceGui.Enabled = true
+					local upCost = getUpgradeCost(level)
+					itemSurfaceGui.Label.Text = "Lv." .. level .. " -> " .. (level + 1) .. "\n(" .. formatNumber(upCost) .. ")"
+					itemSurfaceGui.Enabled = true
 
-				clickDetector.MaxActivationDistance = 32
+					clickDetector.MaxActivationDistance = 32
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
-				touchPart.Color = Color3.fromRGB(255, 0, 0)
+				touchPart.Color = Color3.fromRGB(0, 255, 0) -- 配置可能な時は緑
+				billboard.Label.Text = "READY TO PLACE"
+				billboard.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
 				billboard.Adornee = touchPart
-				billboard.Enabled = false
+				billboard.Enabled = true
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
 				clickDetector.MaxActivationDistance = 32
@@ -693,7 +695,11 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 			local function setupFloorInternal(targetFloor, num)
 				local basePart = targetFloor:FindFirstChild("Base")
 				if basePart then
-					setupSlot(player, base, basePart)
+					for _, child in ipairs(basePart:GetChildren()) do
+						if child:IsA("Model") then
+							setupSlot(player, base, child)
+						end
+					end
 				end
 				local boardModel = targetFloor:FindFirstChild("Board")
 				if boardModel then
@@ -717,7 +723,11 @@ end
 local function setupFloor(player, base, floorModel, floorLevel)
 	local basePart = floorModel:FindFirstChild("Base")
 	if basePart then
-		setupSlot(player, base, basePart)
+		for _, child in ipairs(basePart:GetChildren()) do
+			if child:IsA("Model") then
+				setupSlot(player, base, child)
+			end
+		end
 	end
 
 	local board = floorModel:FindFirstChild("Board")
