@@ -23,7 +23,7 @@ local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 -- =========================
 -- スロット管理
 -- =========================
-local SPACING = 150
+local SPACING = 70
 local MAX_SLOTS = 7
 local MAX_BASE_LEVEL = 4
 

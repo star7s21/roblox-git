@@ -2,11 +2,11 @@ local RunService = game:GetService("RunService")
 
 local template = workspace:WaitForChild("Wave")
 
-local MAP_WIDTH = 1024
+local MAP_WIDTH = 512
 local HALF_MAP = MAP_WIDTH / 2
 
-local startZ = 1024
-local endZ = -705
+local startZ = 512
+local endZ = -700
 
 local minSpeed = 50
 local maxSpeed = 150
@@ -68,7 +68,7 @@ local function spawnWave()
 		wave.Size.Z
 	)
 
-	wave.CFrame = CFrame.new(basePosition)
+	wave.CFrame = CFrame.new(basePosition) * CFrame.Angles(0, math.rad(-90), 0)
 
 	local speed = math.random(minSpeed, maxSpeed)
 
@@ -135,6 +135,7 @@ RunService.Heartbeat:Connect(function(dt)
 			w.baseY,
 			w.z
 		)
+		* CFrame.Angles(0, math.rad(-90), 0)
 	end
 end)
 
