@@ -843,15 +843,12 @@ local function handlePlayer(player)
 		clearTreasure(player, character)
 		applySpeed(player, character)
 
-		-- 基地の中央にスポーン
-		task.spawn(function()
-			-- キャラクターが物理的に安定し、Robloxのデフォルトスポーン処理が終わるのを待つ
-			task.wait(0.5)
-			if base and base.PrimaryPart then
-				-- 基地の中央にスポーン位置を設定
-				character:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
-			end
-		end)
+		local hrp = character:WaitForChild("HumanoidRootPart", 10)
+		if not hrp then return end
+
+		if base and base.PrimaryPart then
+			character:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
+		end
 	end
 
 	player.CharacterAdded:Connect(handleCharacter)
