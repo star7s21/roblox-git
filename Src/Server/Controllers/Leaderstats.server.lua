@@ -120,7 +120,7 @@ Players.PlayerAdded:Connect(function(player)
 
 	local speed = Instance.new("IntValue", leaderstats)
 	speed.Name = "Speed"
-	speed.Value = 16
+	speed.Value = 24
 
 	local rebirths = Instance.new("IntValue", leaderstats)
 	rebirths.Name = "Rebirths"
@@ -221,8 +221,8 @@ local function save(player)
 
 		-- 🔥 Speed安全保存
 		Speed = math.max(
-			leaderstats:FindFirstChild("Speed") and leaderstats.Speed.Value or 16,
-			16
+			leaderstats:FindFirstChild("Speed") and leaderstats.Speed.Value or 24,
+			24
 		),
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,

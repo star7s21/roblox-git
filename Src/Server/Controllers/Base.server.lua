@@ -604,8 +604,8 @@ local function refreshBaseVisibility(base)
 		-- Stair: 現在の階より上の階が存在する場合のみ表示
 		setVisible(stair, floorNum < currentLevel)
 		
-		-- Board: 1階は常に表示、それ以外の階は最上階かつMAX未満の時のみ表示
-		local boardVisible = (floorNum == 1) or (floorNum == currentLevel and floorNum < MAX_BASE_LEVEL)
+		-- Board: 1階は常に表示
+		local boardVisible = (floorNum == 1)
 		setVisible(board, boardVisible)
 	end
 
@@ -641,7 +641,8 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 
 		local label = Instance.new("TextLabel")
 		label.Name = "Label"
-		label.Size = UDim2.new(1, 0, 1, 0)
+		label.Size = UDim2.new(1, 0, 0.5, 0)
+		label.Position = UDim2.new(0, 0, 0, 0)
 		label.BackgroundTransparency = 1
 		label.TextColor3 = Color3.new(1, 1, 1)
 		label.Font = Enum.Font.GothamBold
