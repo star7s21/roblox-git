@@ -398,11 +398,9 @@ local function setupSlot(player, base, slot)
 			elseif canPlace then
 				prompt.ActionText = "Place"
 				prompt.ObjectText = "Empty Slot"
-				touchPart.Color = Color3.fromRGB(0, 255, 0) -- 配置可能な時は緑
-				billboard.Label.Text = "READY TO PLACE"
-				billboard.Label.TextColor3 = Color3.fromRGB(0, 255, 0)
+				touchPart.Color = Color3.fromRGB(255, 0, 0)
 				billboard.Adornee = touchPart
-				billboard.Enabled = true
+				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
 				clickDetector.MaxActivationDistance = 32
