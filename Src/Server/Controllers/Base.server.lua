@@ -332,22 +332,21 @@ local function setupSlot(player, base, slot)
 	-- UI更新
 	task.spawn(function()
 		while base.Parent do
-			task.wait(1)
+			local success, err = pcall(function()
+				local stored = placePart:FindFirstChild("StoredItem")
+				local hasTreasure = player:FindFirstChild("HasTreasure")
+				local item = (stored and stored.Value and stored.Value:IsDescendantOf(game)) and stored.Value or nil
+				local level = placePart:GetAttribute("Level") or 1
 
-			local stored = placePart:FindFirstChild("StoredItem")
-			local hasTreasure = player:FindFirstChild("HasTreasure")
-			local item = (stored and stored.Value and stored.Value.Parent) and stored.Value or nil
-			local level = placePart:GetAttribute("Level") or 1
+				local current, maxCap = updateSlot()
 
-			local current, maxCap = updateSlot()
+				local canPickup = item ~= nil and not hasTreasure
+				local canPlace = hasTreasure and not item
 
-			local canPickup = item ~= nil and not hasTreasure
-			local canPlace = hasTreasure and not item
+				prompt.Enabled = canPickup or canPlace
+				sellPrompt.Enabled = (item ~= nil)
 
-			prompt.Enabled = canPickup or canPlace
-			sellPrompt.Enabled = item ~= nil
-
-			if item then
+				if item then
 				prompt.ObjectText = item.Name
 				prompt.ActionText = "Pick Up"
 
@@ -404,7 +403,7 @@ local function setupSlot(player, base, slot)
 				billboard.Enabled = false
 				surfaceGui.Enabled = false
 				itemSurfaceGui.Enabled = false
-				clickDetector.MaxActivationDistance = 0
+				clickDetector.MaxActivationDistance = 32
 			else
 				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(255, 0, 0)
@@ -414,6 +413,11 @@ local function setupSlot(player, base, slot)
 				itemSurfaceGui.Enabled = false
 				clickDetector.MaxActivationDistance = 0
 			end
+			end)
+			if not success then
+				warn("UI Update Error in setupSlot: " .. tostring(err))
+			end
+			task.wait(1)
 		end
 	end)
 
@@ -422,22 +426,25 @@ local function setupSlot(player, base, slot)
 		if triggerPlayer ~= player or promptDebounce then return end
 		promptDebounce = true
 
-		local stored = placePart:FindFirstChild("StoredItem")
-		local item = stored and stored.Value
-		if not item then promptDebounce = false return end
+		local success, err = pcall(function()
+			local stored = placePart:FindFirstChild("StoredItem")
+			local item = stored and stored.Value
+			if not item then return end
 
-		local level = placePart:GetAttribute("Level") or 1
-		local price = getSellPrice(item.Name, level)
+			local level = placePart:GetAttribute("Level") or 1
+			local price = getSellPrice(item.Name, level)
 
-		local leaderstats = player:FindFirstChild("leaderstats")
-		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+			local leaderstats = player:FindFirstChild("leaderstats")
+			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
 
-		if coins then
-			coins.Value = coins.Value + price
-			item:Destroy()
-			stored:Destroy()
-		end
+			if coins then
+				coins.Value = coins.Value + price
+				item:Destroy()
+				if stored then stored:Destroy() end
+			end
+		end)
 
+		if not success then warn("Sell error: " .. tostring(err)) end
 		promptDebounce = false
 	end)
 
@@ -446,21 +453,24 @@ local function setupSlot(player, base, slot)
 		if triggerPlayer ~= player or promptDebounce then return end
 		promptDebounce = true
 
-		local stored = placePart:FindFirstChild("StoredItem")
-		local item = stored and stored.Value
-		if not item then promptDebounce = false return end
+		local success, err = pcall(function()
+			local stored = placePart:FindFirstChild("StoredItem")
+			local item = stored and stored.Value
+			if not item then return end
 
-		local level = placePart:GetAttribute("Level") or 1
-		local cost = getUpgradeCost(level)
+			local level = placePart:GetAttribute("Level") or 1
+			local cost = getUpgradeCost(level)
 
-		local leaderstats = player:FindFirstChild("leaderstats")
-		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+			local leaderstats = player:FindFirstChild("leaderstats")
+			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
 
-		if coins and coins.Value >= cost then
-			coins.Value = coins.Value - cost
-			placePart:SetAttribute("Level", level + 1)
-		end
+			if coins and coins.Value >= cost then
+				coins.Value = coins.Value - cost
+				placePart:SetAttribute("Level", level + 1)
+			end
+		end)
 
+		if not success then warn("Level up error: " .. tostring(err)) end
 		promptDebounce = false
 	end)
 
@@ -469,93 +479,94 @@ local function setupSlot(player, base, slot)
 		if triggerPlayer ~= player or promptDebounce then return end
 		promptDebounce = true
 
-		local character = player.Character
-		if not character then promptDebounce = false return end
+		local success, err = pcall(function()
+			local character = player.Character
+			if not character then return end
 
-		local stored = placePart:FindFirstChild("StoredItem")
-		local hasTreasure = player:FindFirstChild("HasTreasure")
+			local stored = placePart:FindFirstChild("StoredItem")
+			local hasTreasure = player:FindFirstChild("HasTreasure")
 
-		-- 回収
-		if stored and stored.Value and not hasTreasure then
+			-- 回収
+			if stored and stored.Value and not hasTreasure then
+				local item = stored.Value
+				local level = placePart:GetAttribute("Level") or 1
+				clearTreasure(player, character)
 
-			local item = stored.Value
-			local level = placePart:GetAttribute("Level") or 1
-			clearTreasure(player, character)
+				Instance.new("BoolValue", player).Name = "HasTreasure"
 
-			Instance.new("BoolValue", player).Name = "HasTreasure"
+				local levelValue = Instance.new("IntValue", player)
+				levelValue.Name = "TreasureLevel"
+				levelValue.Value = level
 
-			local levelValue = Instance.new("IntValue", player)
-			levelValue.Name = "TreasureLevel"
-			levelValue.Value = level
+				local typeValue = Instance.new("StringValue", player)
+				typeValue.Name = "TreasureType"
+				typeValue.Value = item.Name
 
-			local typeValue = Instance.new("StringValue", player)
-			typeValue.Name = "TreasureType"
-			typeValue.Value = item.Name
-
-			local hrp = character:FindFirstChild("HumanoidRootPart")
-
-			if hrp then
-				local template = treasureFolder:FindFirstChild(item.Name)
-				if template then
-					local clone = template:Clone()
-					clone.Name = "CarriedTreasure"
-					clone.Parent = character
-
-					for _, p in ipairs(clone:GetDescendants()) do
-						if p:IsA("BasePart") then
-							p.Anchored = false
-							p.CanCollide = false
-							p.Massless = true
+				local hrp = character:FindFirstChild("HumanoidRootPart")
+				if hrp then
+					local template = treasureFolder:FindFirstChild(item.Name)
+					if template then
+						local clone = template:Clone()
+						clone.Name = "CarriedTreasure"
+						clone.Parent = character
+						for _, p in ipairs(clone:GetDescendants()) do
+							if p:IsA("BasePart") then
+								p.Anchored = false
+								p.CanCollide = false
+								p.Massless = true
+							end
+						end
+						clone.PrimaryPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+						if clone.PrimaryPart then
+							clone:PivotTo(hrp.CFrame * CFrame.new(0,2,-2))
+							local weld = Instance.new("WeldConstraint")
+							weld.Part0 = clone.PrimaryPart
+							weld.Part1 = hrp
+							weld.Parent = clone.PrimaryPart
 						end
 					end
-
-					clone.PrimaryPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
-
-					if clone.PrimaryPart then
-						clone:PivotTo(hrp.CFrame * CFrame.new(0,2,-2))
-
-						local weld = Instance.new("WeldConstraint")
-						weld.Part0 = clone.PrimaryPart
-						weld.Part1 = hrp
-						weld.Parent = clone.PrimaryPart
-					end
 				end
+				item:Destroy()
+				if stored then stored:Destroy() end
+
+			-- 設置
+			elseif hasTreasure and (not stored or not stored.Value) then
+				if stored then stored:Destroy() end
+
+				local typeValue = player:FindFirstChild("TreasureType")
+				if not typeValue then 
+					warn("Placement failed: No TreasureType value on player")
+					return 
+				end
+
+				local levelValue = player:FindFirstChild("TreasureLevel")
+				local tLevel = levelValue and levelValue.Value or 1
+
+				local template = treasureFolder:FindFirstChild(typeValue.Value)
+				if not template then return end
+
+				local item = template:Clone()
+				item.Parent = base
+				placePart:SetAttribute("Level", tLevel)
+				placePart:SetAttribute("CurrentCoins", 0)
+				placePart:SetAttribute("LastUpdateTime", os.clock())
+
+				local yOffset = (placePart.Size.Y / 2) + (item:GetExtentsSize().Y / 2)
+				if item.PrimaryPart then
+					item:PivotTo(placePart.CFrame * CFrame.new(0, yOffset, 0))
+				else
+					item:MoveTo((placePart.CFrame * CFrame.new(0, yOffset, 0)).Position)
+				end
+
+				local storedItem = Instance.new("ObjectValue", placePart)
+				storedItem.Name = "StoredItem"
+				storedItem.Value = item
+
+				clearTreasure(player, character)
 			end
+		end)
 
-			item:Destroy()
-			stored:Destroy()
-
-		-- 設置
-		elseif hasTreasure and (not stored or not stored.Value) then
-			if stored then stored:Destroy() end
-
-			local levelValue = player:FindFirstChild("TreasureLevel")
-			local typeValue = player:FindFirstChild("TreasureType")
-			if not levelValue or not typeValue then promptDebounce = false return end
-
-			local template = treasureFolder:FindFirstChild(typeValue.Value)
-			if not template then promptDebounce = false return end
-
-			local item = template:Clone()
-			item.Parent = base
-			placePart:SetAttribute("Level", levelValue.Value)
-			placePart:SetAttribute("CurrentCoins", 0)
-			placePart:SetAttribute("LastUpdateTime", os.clock())
-
-			local yOffset = (placePart.Size.Y / 2) + (item:GetExtentsSize().Y / 2)
-			if item.PrimaryPart then
-				item:PivotTo(placePart.CFrame * CFrame.new(0, yOffset, 0))
-			else
-				item:MoveTo((placePart.CFrame * CFrame.new(0, yOffset, 0)).Position)
-			end
-
-			local storedItem = Instance.new("ObjectValue", placePart)
-			storedItem.Name = "StoredItem"
-			storedItem.Value = item
-
-			clearTreasure(player, character)
-		end
-
+		if not success then warn("Placement/Recovery error: " .. tostring(err)) end
 		promptDebounce = false
 	end)
 end
