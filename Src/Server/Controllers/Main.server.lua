@@ -19,11 +19,25 @@ local waves = {}
 ---------------------------------------------------
 -- 当たり判定
 ---------------------------------------------------
+local Players = game:GetService("Players")
+
 local function setupWave(wave)
 	wave.Touched:Connect(function(hit)
-		local character = hit.Parent
-		local humanoid = character:FindFirstChild("Humanoid")
+
+		if hit.Name ~= "HumanoidRootPart" then
+			return
+		end
+
+		local character = hit:FindFirstAncestorOfClass("Model")
+		if not character then return end
+
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		if not humanoid then return end
+
+		-- プレイヤー以外除外
+		if not Players:GetPlayerFromCharacter(character) then
+			return
+		end
 
 		local root = character:FindFirstChild("HumanoidRootPart")
 		if root and root.Position.Y < 7 then
