@@ -158,20 +158,20 @@ local function setupSlot(player, base, slot)
 	local placePart = slot:FindFirstChild("ItemArea")
 	if not touchPart or not placePart then return end
 
-	local attachment = touchPart:FindFirstChild("PromptAttachment")
+	local attachment = placePart:FindFirstChild("PromptAttachment")
 	if not attachment then
 		attachment = Instance.new("Attachment")
 		attachment.Name = "PromptAttachment"
-		attachment.Position = Vector3.new(-4, 8, 0)
-		attachment.Parent = touchPart
+		attachment.Position = Vector3.new(0, 2, 0)
+		attachment.Parent = placePart
 	end
 
-	local sellAttachment = touchPart:FindFirstChild("SellPromptAttachment")
+	local sellAttachment = placePart:FindFirstChild("SellPromptAttachment")
 	if not sellAttachment then
 		sellAttachment = Instance.new("Attachment")
 		sellAttachment.Name = "SellPromptAttachment"
-		sellAttachment.Position = Vector3.new(4, 8, 0)
-		sellAttachment.Parent = touchPart
+		sellAttachment.Position = Vector3.new(0, 4, 0)
+		sellAttachment.Parent = placePart
 	end
 
 	local prompt = attachment:FindFirstChild("ActionPrompt")
@@ -238,8 +238,27 @@ local function setupSlot(player, base, slot)
 		return currentCoins, maxCap
 	end
 
-	-- Touched (コイン回収)
+	-- SurfaceGui (上面表示用) 作成
 	local surfaceGui = touchPart:FindFirstChild("SurfaceStatusUI")
+	if not surfaceGui then
+		surfaceGui = Instance.new("SurfaceGui")
+		surfaceGui.Name = "SurfaceStatusUI"
+		surfaceGui.Face = Enum.NormalId.Top
+		surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		surfaceGui.PixelsPerStud = 50
+		surfaceGui.Parent = touchPart
+
+		local text = Instance.new("TextLabel")
+		text.Name = "Label"
+		text.Size = UDim2.new(1, 0, 1, 0)
+		text.BackgroundTransparency = 1
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.Font = Enum.Font.GothamBold
+		text.TextScaled = true
+		text.Parent = surfaceGui
+	end
+
+	-- Touched (コイン回収)
 	touchPart.Touched:Connect(function(hit)
 		local char = hit.Parent
 		local p = Players:GetPlayerFromCharacter(char)
@@ -256,7 +275,9 @@ local function setupSlot(player, base, slot)
 			if coins then
 				coins.Value = coins.Value + math.floor(current)
 				placePart:SetAttribute("CurrentCoins", 0)
-				surfaceGui.Label.Text = "0"
+				if surfaceGui and surfaceGui:FindFirstChild("Label") then
+					surfaceGui.Label.Text = "0"
+				end
 			end
 		end
 		task.wait(0.5)
@@ -287,24 +308,6 @@ local function setupSlot(player, base, slot)
 		text.Parent = billboard
 	end
 
-	-- SurfaceGui (上面表示用) 作成
-	if not surfaceGui then
-		surfaceGui = Instance.new("SurfaceGui")
-		surfaceGui.Name = "SurfaceStatusUI"
-		surfaceGui.Face = Enum.NormalId.Top
-		surfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-		surfaceGui.PixelsPerStud = 50
-		surfaceGui.Parent = touchPart
-
-		local text = Instance.new("TextLabel")
-		text.Name = "Label"
-		text.Size = UDim2.new(1, 0, 1, 0)
-		text.BackgroundTransparency = 1
-		text.TextColor3 = Color3.new(1, 1, 1)
-		text.Font = Enum.Font.GothamBold
-		text.TextScaled = true
-		text.Parent = surfaceGui
-	end
 
 	-- ItemArea UI (側面レベル表示)
 	local itemSurfaceGui = placePart:FindFirstChild("LevelUI")
@@ -333,7 +336,7 @@ local function setupSlot(player, base, slot)
 
 			local stored = placePart:FindFirstChild("StoredItem")
 			local hasTreasure = player:FindFirstChild("HasTreasure")
-			local item = stored and stored.Value
+			local item = (stored and stored.Value and stored.Value.Parent) and stored.Value or nil
 			local level = placePart:GetAttribute("Level") or 1
 
 			local current, maxCap = updateSlot()
@@ -524,6 +527,7 @@ local function setupSlot(player, base, slot)
 
 		-- 設置
 		elseif hasTreasure and (not stored or not stored.Value) then
+			if stored then stored:Destroy() end
 
 			local levelValue = player:FindFirstChild("TreasureLevel")
 			local typeValue = player:FindFirstChild("TreasureType")
@@ -589,8 +593,9 @@ local function refreshBaseVisibility(base)
 		-- Stair: 現在の階より上の階が存在する場合のみ表示
 		setVisible(stair, floorNum < currentLevel)
 		
-		-- Board: 最上階かつMAXレベル未満の場合のみ表示
-		setVisible(board, floorNum == currentLevel and floorNum < MAX_BASE_LEVEL)
+		-- Board: 1階は常に表示、それ以外の階は最上階かつMAX未満の時のみ表示
+		local boardVisible = (floorNum == 1) or (floorNum == currentLevel and floorNum < MAX_BASE_LEVEL)
+		setVisible(board, boardVisible)
 	end
 
 	-- 初期階
@@ -635,9 +640,15 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 
 	local function updateBoard()
 		local level = base:GetAttribute("BaseLevel") or 1
-		local cost = getBaseUpgradeCost(level + 1)
-		prompt.ObjectText = "Level " .. (level + 1)
-		gui.Label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
+		if level >= MAX_BASE_LEVEL then
+			prompt.Enabled = false
+			gui.Label.Text = "LEVEL MAX"
+		else
+			local cost = getBaseUpgradeCost(level + 1)
+			prompt.ObjectText = "Level " .. (level + 1)
+			gui.Label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
+			prompt.Enabled = true
+		end
 	end
 
 	base:GetAttributeChangedSignal("BaseLevel"):Connect(updateBoard)
