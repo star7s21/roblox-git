@@ -154,7 +154,7 @@ end
 -- =========================
 local function setupSlot(player, base, slot)
 
-	local touchPart = slot:FindFirstChild("TouchArea")
+	local touchPart = slot:FindFirstChild("TouchArea") or (slot:IsA("BasePart") and slot)
 	local placePart = slot:FindFirstChild("ItemArea")
 	if not touchPart or not placePart then return end
 
@@ -556,6 +556,29 @@ local function setupSlot(player, base, slot)
 	end)
 end
 
+local function setVisible(obj, visible)
+	if not obj then return end
+	if obj:IsA("BasePart") then
+		obj.Transparency = visible and 0 or 1
+		obj.CanCollide = visible
+		obj.CanQuery = visible
+		obj.CanTouch = visible
+	elseif obj:IsA("Model") then
+		for _, child in ipairs(obj:GetDescendants()) do
+			if child:IsA("BasePart") then
+				child.Transparency = visible and 0 or 1
+				child.CanCollide = visible
+				child.CanQuery = visible
+				child.CanTouch = visible
+			elseif child:IsA("ProximityPrompt") then
+				child.Enabled = visible
+			elseif child:IsA("LayerCollector") then -- BillboardGui, SurfaceGui
+				child.Enabled = visible
+			end
+		end
+	end
+end
+
 local function refreshBaseVisibility(base)
 	local currentLevel = base:GetAttribute("BaseLevel") or 1
 	
@@ -564,17 +587,13 @@ local function refreshBaseVisibility(base)
 		local stair = floor:FindFirstChild("Stair")
 		
 		-- Stair: 現在の階より上の階が存在する場合のみ表示
-		if stair then
-			stair.Parent = (floorNum < currentLevel) and floor or nil
-		end
+		setVisible(stair, floorNum < currentLevel)
 		
 		-- Board: 最上階かつMAXレベル未満の場合のみ表示
-		if board then
-			board.Parent = (floorNum == currentLevel and floorNum < MAX_BASE_LEVEL) and floor or nil
-		end
+		setVisible(board, floorNum == currentLevel and floorNum < MAX_BASE_LEVEL)
 	end
 
-	-- 初期階 (名前がplayer_Baseの直下にある各パーツ/モデル)
+	-- 初期階
 	updateFloorVisibility(base, 1)
 
 	-- 追加階
