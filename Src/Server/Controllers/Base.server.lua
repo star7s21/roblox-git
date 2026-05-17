@@ -556,68 +556,73 @@ local function setupSlot(player, base, slot)
 	end)
 end
 
-local function setupFloor(player, base, floorModel)
-	local slotsFolder = floorModel:FindFirstChild("Base")
-	if not slotsFolder then return end
-	for _, slot in ipairs(slotsFolder:GetChildren()) do
-		if slot:IsA("Model") then
-			setupSlot(player, base, slot)
+local function refreshBaseVisibility(base)
+	local currentLevel = base:GetAttribute("BaseLevel") or 1
+	
+	local function updateFloorVisibility(floor, floorNum)
+		local board = floor:FindFirstChild("Board")
+		local stair = floor:FindFirstChild("Stair")
+		
+		-- Stair: 現在の階より上の階が存在する場合のみ表示
+		if stair then
+			stair.Parent = (floorNum < currentLevel) and floor or nil
+		end
+		
+		-- Board: 最上階かつMAXレベル未満の場合のみ表示
+		if board then
+			board.Parent = (floorNum == currentLevel and floorNum < MAX_BASE_LEVEL) and floor or nil
+		end
+	end
+
+	-- 初期階 (名前がplayer_Baseの直下にある各パーツ/モデル)
+	updateFloorVisibility(base, 1)
+
+	-- 追加階
+	for i = 2, MAX_BASE_LEVEL do
+		local floor = base:FindFirstChild("Floor" .. i)
+		if floor then
+			updateFloorVisibility(floor, i)
 		end
 	end
 end
 
-local function setupBaseUpgradeButton(player, base)
-	local primary = base.PrimaryPart
-	if not primary then return end
+local function setupBoardUpgrade(player, base, board, floorLevel)
+	local displayPart = board.PrimaryPart or board:FindFirstChildWhichIsA("BasePart")
+	if not displayPart then return end
 
-	local button = Instance.new("Part")
-	button.Name = "UpgradeButton"
-	button.Size = Vector3.new(10, 1, 10)
-	button.CFrame = primary.CFrame * CFrame.new(0, -primary.Size.Y/2 + 0.5, 35)
-	button.Color = Color3.fromRGB(0, 255, 0)
-	button.Anchored = true
-	button.Parent = base
-
-	local attachment = Instance.new("Attachment", button)
-	attachment.Position = Vector3.new(0, 2, 0)
-
-	local prompt = Instance.new("ProximityPrompt")
+	local prompt = board:FindFirstChildWhichIsA("ProximityPrompt") or Instance.new("ProximityPrompt")
 	prompt.ActionText = "Upgrade Base"
-	prompt.ObjectText = "Level 1"
 	prompt.KeyboardKeyCode = Enum.KeyCode.G
-	prompt.Parent = attachment
+	prompt.Parent = displayPart
 
-	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.new(0, 100, 0, 50)
-	billboard.StudsOffset = Vector3.new(0, 3, 0)
-	billboard.AlwaysOnTop = true
-	billboard.Parent = button
+	local gui = board:FindFirstChild("UpgradeUI")
+	if not gui then
+		gui = Instance.new("SurfaceGui")
+		gui.Name = "UpgradeUI"
+		gui.Face = Enum.NormalId.Right -- 側面に表示
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 50
+		gui.Parent = displayPart
 
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.new(1, 0, 1, 0)
-	label.BackgroundTransparency = 1
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.TextStrokeTransparency = 0
-	label.Font = Enum.Font.GothamBold
-	label.TextScaled = true
-	label.Parent = billboard
-
-	local function updateButton()
-		local level = base:GetAttribute("BaseLevel") or 1
-		if level >= MAX_BASE_LEVEL then
-			prompt.Enabled = false
-			label.Text = "MAX LEVEL"
-			button.Transparency = 0.5
-		else
-			local cost = getBaseUpgradeCost(level + 1)
-			prompt.ObjectText = "Level " .. (level + 1)
-			label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
-			prompt.Enabled = true
-			button.Transparency = 0
-		end
+		local label = Instance.new("TextLabel")
+		label.Name = "Label"
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.BackgroundTransparency = 1
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.Font = Enum.Font.GothamBold
+		label.TextScaled = true
+		label.Parent = gui
 	end
 
-	base:GetAttributeChangedSignal("BaseLevel"):Connect(updateButton)
+	local function updateBoard()
+		local level = base:GetAttribute("BaseLevel") or 1
+		local cost = getBaseUpgradeCost(level + 1)
+		prompt.ObjectText = "Level " .. (level + 1)
+		gui.Label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
+	end
+
+	base:GetAttributeChangedSignal("BaseLevel"):Connect(updateBoard)
+	updateBoard()
 
 	prompt.Triggered:Connect(function(triggerPlayer)
 		if triggerPlayer ~= player then return end
@@ -641,22 +646,43 @@ local function setupBaseUpgradeButton(player, base)
 			newFloor.Name = "Floor" .. nextLevel
 			newFloor.Parent = base
 
-			local floorHeight = 30 -- BaseModelの高さ（調整が必要な場合はここを変更）
-			newFloor:PivotTo(primary.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
+			local floorHeight = 30
+			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
 
-			setupFloor(player, base, newFloor)
+			local function setupFloorInternal(targetFloor, num)
+				local basePart = targetFloor:FindFirstChild("Base")
+				if basePart then
+					setupSlot(player, base, basePart)
+				end
+				local boardModel = targetFloor:FindFirstChild("Board")
+				if boardModel then
+					setupBoardUpgrade(player, base, boardModel, num)
+				end
+			end
 
+			setupFloorInternal(newFloor, nextLevel)
+			
 			-- オーナー名タグを最新の階の頂上へ移動
 			local ownerTag = base:FindFirstChild("OwnerTag")
 			if ownerTag then
 				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
 			end
 
-			updateButton()
+			refreshBaseVisibility(base)
 		end
 	end)
+end
 
-	updateButton()
+local function setupFloor(player, base, floorModel, floorLevel)
+	local basePart = floorModel:FindFirstChild("Base")
+	if basePart then
+		setupSlot(player, base, basePart)
+	end
+
+	local board = floorModel:FindFirstChild("Board")
+	if board then
+		setupBoardUpgrade(player, base, board, floorLevel)
+	end
 end
 
 -- =========================
@@ -713,7 +739,7 @@ local function createBase(player)
 	label.TextScaled = true
 	label.Parent = billboard
 
-	setupBaseUpgradeButton(player, base)
+	refreshBaseVisibility(base)
 
 	return base
 end
@@ -726,7 +752,7 @@ local function handlePlayer(player)
 	if not base then return end
 	playerBases[player] = base
 
-	setupFloor(player, base, base)
+	setupFloor(player, base, base, 1)
 
 	-- ロードされたレベルに合わせて階層を復元
 	task.spawn(function()
@@ -751,7 +777,7 @@ local function handlePlayer(player)
 			local floorHeight = 30
 			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
 
-			setupFloor(player, base, newFloor)
+			setupFloor(player, base, newFloor, nextLevel)
 			base:SetAttribute("BaseLevel", nextLevel)
 
 			-- オーナー名タグを最新の階の頂上へ移動
@@ -760,6 +786,7 @@ local function handlePlayer(player)
 				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
 			end
 		end
+		refreshBaseVisibility(base)
 	end)
 
 	local function handleCharacter(character)
