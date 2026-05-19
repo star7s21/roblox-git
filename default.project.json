@@ -9,6 +9,12 @@
       }
     },
 
+    "ReplicatedStorage": {
+      "AdminUpdateStat": {
+        "$className": "RemoteEvent"
+      }
+    },
+
     "StarterGui": {
       "Client": {
         "$path": "Src/Client"
