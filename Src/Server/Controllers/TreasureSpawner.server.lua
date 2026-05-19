@@ -103,7 +103,7 @@ local function spawnTreasure(position, level)
 		local text = Instance.new("TextLabel")
 		text.Size = UDim2.new(1, 0, 1, 0)
 		text.BackgroundTransparency = 1
-		text.Text = item.name
+		text.Text = rarity.name .. " " .. item.name
 		text.TextColor3 = rarity.color
 		text.TextStrokeTransparency = 0
 		text.TextStrokeColor3 = Color3.new(0,0,0)

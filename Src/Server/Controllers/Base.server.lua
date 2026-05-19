@@ -337,7 +337,7 @@ local function setupSlot(player, base, slot)
 					local rarityName = config and config.name or item.Name
 
 					local cps, _ = getStats(player, item.Name, level)
-					local statusText = rarityName .. " Lv." .. level .. "\n"
+					local statusText = rarityName .. " " .. displayName .. " Lv." .. level .. "\n"
 					local coinText = formatNumber(current)
 					if current >= maxCap then
 						statusText = statusText .. "FULL!"
