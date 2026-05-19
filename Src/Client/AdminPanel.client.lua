@@ -3,24 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local remoteEvent = ReplicatedStorage:WaitForChild("AdminUpdateStat")
 
+local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
+local formatNumber = Utils.formatNumber
+
 repeat task.wait() until player:GetAttribute("IsAdmin") ~= nil
 if not player:GetAttribute("IsAdmin") then
 	return
-end
-
-local function formatNumber(n)
-	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
-	local i = 1
-	local val = n
-
-	while val >= 1000 and i < #suffixes do
-		val = val / 1000
-		i = i + 1
-	end
-
-	return i == 1
-		and tostring(math.floor(val))
-		or string.format("%g%s", val, suffixes[i])
 end
 
 -- UI作成

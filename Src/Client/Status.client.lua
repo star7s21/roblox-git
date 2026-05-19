@@ -1,16 +1,7 @@
 local player = game.Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local function formatNumber(n)
-	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
-	local i = 1
-	local val = n
-	while val >= 1000 and i < #suffixes do
-		val = val / 1000
-		i = i + 1
-	end
-	return i == 1 and tostring(math.floor(val)) or string.format("%.1f%s", val, suffixes[i])
-end
+local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
+local formatNumber = Utils.formatNumber
 local leaderstats = player:WaitForChild("leaderstats")
 
 local coins = leaderstats:WaitForChild("Coins")

@@ -12,6 +12,9 @@
     "ReplicatedStorage": {
       "AdminUpdateStat": {
         "$className": "RemoteEvent"
+      },
+      "Shared": {
+        "$path": "Src/Shared"
       }
     },
 
