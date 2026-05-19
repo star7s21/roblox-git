@@ -1,7 +1,7 @@
 local module = {}
 
 function module.formatNumber(n)
-	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
+	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"}
 	local i = 1
 	local val = n
 	while val >= 1000 and i < #suffixes do
