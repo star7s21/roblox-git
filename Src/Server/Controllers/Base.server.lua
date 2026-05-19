@@ -319,7 +319,7 @@ local function setupSlot(player, base, slot)
 
 	-- UI更新
 	task.spawn(function()
-		while base.Parent do
+		while base.Parent and placePart.Parent do
 			local success, err = pcall(function()
 				local stored = placePart:FindFirstChild("StoredItem")
 				local hasTreasure = player:FindFirstChild("HasTreasure")
@@ -670,43 +670,11 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 		if coins and coins.Value >= cost then
 			coins.Value = coins.Value - cost
 			local nextLevel = level + 1
-			base:SetAttribute("BaseLevel", nextLevel)
-
-			local baseLevelStat = leaderstats:FindFirstChild("BaseLevel")
-			if baseLevelStat then baseLevelStat.Value = nextLevel end
-
-			-- 新しい階層を積み上げる
-			local newFloor = baseTemplate:Clone()
-			newFloor.Name = "Floor" .. nextLevel
-			newFloor.Parent = base
-
-			local floorHeight = 30
-			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
-
-			local function setupFloorInternal(targetFloor, num)
-				local basePart = targetFloor:FindFirstChild("Base")
-				if basePart then
-					for _, child in ipairs(basePart:GetChildren()) do
-						if child:IsA("Model") then
-							setupSlot(player, base, child)
-						end
-					end
-				end
-				local boardModel = targetFloor:FindFirstChild("Board")
-				if boardModel then
-					setupBoardUpgrade(player, base, boardModel, num)
-				end
-			end
-
-			setupFloorInternal(newFloor, nextLevel)
 			
-			-- オーナー名タグを最新の階の頂上へ移動
-			local ownerTag = base:FindFirstChild("OwnerTag")
-			if ownerTag then
-				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
+			local baseLevelStat = leaderstats:FindFirstChild("BaseLevel")
+			if baseLevelStat then 
+				baseLevelStat.Value = nextLevel 
 			end
-
-			refreshBaseVisibility(base)
 		end
 	end)
 end
@@ -725,6 +693,61 @@ local function setupFloor(player, base, floorModel, floorLevel)
 	if board then
 		setupBoardUpgrade(player, base, board, floorLevel)
 	end
+end
+
+local function syncBaseLevel(player, base, targetLevel)
+	local currentLevelAttr = base:GetAttribute("BaseLevel") or 1
+	
+	if targetLevel > currentLevelAttr then
+		-- 階層を追加
+		for i = currentLevelAttr + 1, targetLevel do
+			local nextLevel = i
+			local newFloor = baseTemplate:Clone()
+			newFloor.Name = "Floor" .. nextLevel
+			newFloor.Parent = base
+
+			local floorHeight = 30
+			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
+
+			setupFloor(player, base, newFloor, nextLevel)
+			base:SetAttribute("BaseLevel", nextLevel)
+
+			-- オーナー名タグを最新の階の頂上へ移動
+			local ownerTag = base:FindFirstChild("OwnerTag")
+			if ownerTag then
+				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
+			end
+		end
+	elseif targetLevel < currentLevelAttr then
+		-- 階層を削除
+		for i = currentLevelAttr, targetLevel + 1, -1 do
+			local floor = base:FindFirstChild("Floor" .. i)
+			if floor then
+				-- 削除されるフロアのアイテムを削除
+				local basePart = floor:FindFirstChild("Base")
+				if basePart then
+					for _, slot in ipairs(basePart:GetChildren()) do
+						if slot:IsA("Model") then
+							local stored = slot:FindFirstChild("StoredItem")
+							if stored and stored.Value then
+								stored.Value:Destroy()
+							end
+						end
+					end
+				end
+				floor:Destroy()
+			end
+		end
+		base:SetAttribute("BaseLevel", targetLevel)
+		
+		-- オーナー名タグを現在の最上階に戻す
+		local topFloor = (targetLevel == 1) and base or base:FindFirstChild("Floor" .. targetLevel)
+		local ownerTag = base:FindFirstChild("OwnerTag")
+		if ownerTag and topFloor then
+			ownerTag.Adornee = topFloor.PrimaryPart or topFloor:FindFirstChildWhichIsA("BasePart")
+		end
+	end
+	refreshBaseVisibility(base)
 end
 
 -- =========================
@@ -796,39 +819,25 @@ local function handlePlayer(player)
 
 	setupFloor(player, base, base, 1)
 
-	-- ロードされたレベルに合わせて階層を復元
+	-- ロードされたレベルに合わせて階層を復元・同期
 	task.spawn(function()
-		-- データのロード完了を待つ
-		while not player:GetAttribute("DataLoaded") do
-			task.wait(0.1)
-		end
-
 		local leaderstats = player:WaitForChild("leaderstats", 10)
 		if not leaderstats then return end
 		local baseLevelStat = leaderstats:WaitForChild("BaseLevel", 10)
 		if not baseLevelStat then return end
 
-		local targetLevel = baseLevelStat.Value
-		for i = 2, targetLevel do
-			local nextLevel = i
+		-- ステータス変更を監視
+		baseLevelStat.Changed:Connect(function(newVal)
+			syncBaseLevel(player, base, newVal)
+		end)
 
-			local newFloor = baseTemplate:Clone()
-			newFloor.Name = "Floor" .. nextLevel
-			newFloor.Parent = base
-
-			local floorHeight = 30
-			newFloor:PivotTo(base.PrimaryPart.CFrame * CFrame.new(0, floorHeight * (nextLevel - 1), 0))
-
-			setupFloor(player, base, newFloor, nextLevel)
-			base:SetAttribute("BaseLevel", nextLevel)
-
-			-- オーナー名タグを最新の階の頂上へ移動
-			local ownerTag = base:FindFirstChild("OwnerTag")
-			if ownerTag then
-				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
-			end
+		-- データのロード完了を待つ
+		while not player:GetAttribute("DataLoaded") do
+			task.wait(0.1)
 		end
-		refreshBaseVisibility(base)
+
+		-- 初期同期
+		syncBaseLevel(player, base, baseLevelStat.Value)
 	end)
 
 	local function handleCharacter(character)
