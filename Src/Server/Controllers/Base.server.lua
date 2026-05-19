@@ -61,7 +61,7 @@ end
 -- 状態リセット
 -- =========================
 local function clearTreasure(player, character)
-	for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType","TreasureLevel"}) do
+	for _, name in ipairs({"HasTreasure","TreasureValue","TreasureType","TreasureLevel","TreasureDisplayName"}) do
 		local v = player:FindFirstChild(name)
 		if v then v:Destroy() end
 	end
@@ -77,13 +77,7 @@ end
 -- =========================
 -- ステータス計算
 local function getStats(player, typeName, level)
-	local config = nil
-	for _, t in ipairs(TreasureConfig.Types) do
-		if t.name == typeName or t.model == typeName then
-			config = t
-			break
-		end
-	end
+	local config = TreasureConfig.GetRarity(typeName)
 	if not config then return 0, 0 end
 
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -111,13 +105,7 @@ local function getBaseUpgradeCost(level)
 end
 
 local function getSellPrice(typeName, level)
-	local config = nil
-	for _, t in ipairs(TreasureConfig.Types) do
-		if t.name == typeName or t.model == typeName then
-			config = t
-			break
-		end
-	end
+	local config = TreasureConfig.GetRarity(typeName)
 	if not config then return 0 end
 
 	local baseValue = 50
@@ -347,19 +335,15 @@ local function setupSlot(player, base, slot)
 				sellPrompt.Enabled = (item ~= nil)
 
 				if item then
-					prompt.ObjectText = item.Name
+					local displayName = item:GetAttribute("DisplayName") or item.Name
+					prompt.ObjectText = displayName
 					prompt.ActionText = "Pick Up"
 
 					local sellPrice = getSellPrice(item.Name, level)
-					sellPrompt.ObjectText = item.Name .. " (" .. formatNumber(sellPrice) .. ")"
+					sellPrompt.ObjectText = displayName .. " (" .. formatNumber(sellPrice) .. ")"
 					
-					local rarityName = item.Name
-					for _, t in ipairs(TreasureConfig.Types) do
-						if t.model == item.Name then
-							rarityName = t.name
-							break
-						end
-					end
+					local config = TreasureConfig.GetRarity(item.Name)
+					local rarityName = config and config.name or item.Name
 
 					local cps, _ = getStats(player, item.Name, level)
 					local statusText = rarityName .. " Lv." .. level .. "\n"
@@ -502,6 +486,10 @@ local function setupSlot(player, base, slot)
 				typeValue.Name = "TreasureType"
 				typeValue.Value = item.Name
 
+				local displayNameValue = Instance.new("StringValue", player)
+				displayNameValue.Name = "TreasureDisplayName"
+				displayNameValue.Value = item:GetAttribute("DisplayName") or item.Name
+
 				local hrp = character:FindFirstChild("HumanoidRootPart")
 				if hrp then
 					local template = treasureFolder:FindFirstChild(item.Name)
@@ -539,6 +527,9 @@ local function setupSlot(player, base, slot)
 					return 
 				end
 
+				local displayNameValue = player:FindFirstChild("TreasureDisplayName")
+				local dName = displayNameValue and displayNameValue.Value or typeValue.Value
+
 				local levelValue = player:FindFirstChild("TreasureLevel")
 				local tLevel = levelValue and levelValue.Value or 1
 
@@ -546,6 +537,7 @@ local function setupSlot(player, base, slot)
 				if not template then return end
 
 				local item = template:Clone()
+				item:SetAttribute("DisplayName", dName)
 				item.Parent = base
 				placePart:SetAttribute("Level", tLevel)
 				placePart:SetAttribute("CurrentCoins", 0)

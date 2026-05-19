@@ -10,7 +10,7 @@ function module.setupTreasure(treasure)
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Pick Up"
-	prompt.ObjectText = treasure:GetAttribute("Model") or treasure.Name
+	prompt.ObjectText = treasure:GetAttribute("DisplayName") or treasure:GetAttribute("Model") or treasure.Name
 	prompt.HoldDuration = 1.0
 	prompt.RequiresLineOfSight = false
 	prompt.MaxActivationDistance = 15
@@ -40,6 +40,11 @@ function module.setupTreasure(treasure)
 		typeValue.Name = "TreasureType"
 		typeValue.Value = treasure:GetAttribute("Model") or treasure.Name
 		typeValue.Parent = player
+
+		local displayNameValue = Instance.new("StringValue")
+		displayNameValue.Name = "TreasureDisplayName"
+		displayNameValue.Value = treasure:GetAttribute("DisplayName") or treasure.Name
+		displayNameValue.Parent = player
 
 		-- 見た目
 		local character = player.Character
