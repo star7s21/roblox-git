@@ -728,7 +728,8 @@ local function syncBaseLevel(player, base, targetLevel)
 				if basePart then
 					for _, slot in ipairs(basePart:GetChildren()) do
 						if slot:IsA("Model") then
-							local stored = slot:FindFirstChild("StoredItem")
+							local itemArea = slot:FindFirstChild("ItemArea")
+							local stored = itemArea and itemArea:FindFirstChild("StoredItem")
 							if stored and stored.Value then
 								stored.Value:Destroy()
 							end
