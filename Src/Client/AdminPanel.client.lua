@@ -3,14 +3,25 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local remoteEvent = ReplicatedStorage:WaitForChild("AdminUpdateStat")
 
--- 管理者のUserIdリスト（サーバー側と合わせてください）
-local ADMIN_IDS = {1, 23456789} 
-
-local function isAdmin()
-	return table.find(ADMIN_IDS, player.UserId) ~= nil
+repeat task.wait() until player:GetAttribute("IsAdmin") ~= nil
+if not player:GetAttribute("IsAdmin") then
+	return
 end
 
-if not isAdmin() then return end
+local function formatNumber(n)
+	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
+	local i = 1
+	local val = n
+
+	while val >= 1000 and i < #suffixes do
+		val = val / 1000
+		i = i + 1
+	end
+
+	return i == 1
+		and tostring(math.floor(val))
+		or string.format("%g%s", val, suffixes[i])
+end
 
 -- UI作成
 local screenGui = Instance.new("ScreenGui")
@@ -41,7 +52,7 @@ local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 5)
 layout.Parent = panel
 
-local function createStatControl(name, statName, smallInc, largeInc)
+local function createStatControl(name, statName, increment)
 	local frame = Instance.new("Frame")
 	frame.Size = UDim2.new(1, 0, 0, 40)
 	frame.BackgroundTransparency = 1
@@ -57,25 +68,26 @@ local function createStatControl(name, statName, smallInc, largeInc)
 	local btnMinus = Instance.new("TextButton")
 	btnMinus.Size = UDim2.new(0.5, -2, 0, 20)
 	btnMinus.Position = UDim2.new(0, 0, 0, 20)
-	btnMinus.Text = "-" .. (smallInc or 1)
+	btnMinus.Text = "-" .. formatNumber(increment)
 	btnMinus.Parent = frame
 
 	local btnPlus = Instance.new("TextButton")
 	btnPlus.Size = UDim2.new(0.5, -2, 0, 20)
 	btnPlus.Position = UDim2.new(0.5, 2, 0, 20)
-	btnPlus.Text = "+" .. (smallInc or 1)
+	btnPlus.Text = "+" .. formatNumber(increment)
 	btnPlus.Parent = frame
 
 	btnMinus.MouseButton1Click:Connect(function()
-		remoteEvent:FireServer(statName, -(smallInc or 1))
+		remoteEvent:FireServer(statName, -increment)
 	end)
+
 	btnPlus.MouseButton1Click:Connect(function()
-		remoteEvent:FireServer(statName, (smallInc or 1))
+		remoteEvent:FireServer(statName, increment)
 	end)
 end
 
 -- 各ステータスのコントロールを追加
-createStatControl("Coins", "Coins", 1000)
+createStatControl("Coins", "Coins", 1000000)
 createStatControl("Rebirths", "Rebirths", 1)
 createStatControl("Speed", "Speed", 1)
 createStatControl("BaseLevel", "BaseLevel", 1)
