@@ -11,7 +11,8 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(150,150,150),
 		items = {
-			{ name = "Bear", model = "Bear" }
+			{ name = "Bear", model = "Bear" },
+			{ name = "Chair", model = "Chair" },
 		}
 	},
 	{ 
@@ -24,7 +25,7 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(0,170,255),
 		items = {
-			{ name = "69", model = "69" }
+			{ name = "67", model = "67" }
 		}
 	},
 	{ 
