@@ -326,7 +326,7 @@ local function setupSlot(player, base, slot)
 				sellPrompt.Enabled = (item ~= nil)
 
 				if item then
-					local displayName = item:GetAttribute("DisplayName") or item.Name
+					local displayName = item:GetAttribute("DisplayName") or TreasureConfig.GetDisplayName(item.Name)
 					prompt.ObjectText = displayName
 					prompt.ActionText = "Pick Up"
 
@@ -519,7 +519,7 @@ local function setupSlot(player, base, slot)
 				end
 
 				local displayNameValue = player:FindFirstChild("TreasureDisplayName")
-				local dName = displayNameValue and displayNameValue.Value or typeValue.Value
+				local dName = displayNameValue and displayNameValue.Value or TreasureConfig.GetDisplayName(typeValue.Value)
 
 				local levelValue = player:FindFirstChild("TreasureLevel")
 				local tLevel = levelValue and levelValue.Value or 1

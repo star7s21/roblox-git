@@ -69,4 +69,17 @@ function TreasureConfig.GetRarity(nameOrModel)
 	return nil
 end
 
+function TreasureConfig.GetDisplayName(nameOrModel)
+	for _, rarity in ipairs(TreasureConfig.Rarities) do
+		if rarity.items then
+			for _, item in ipairs(rarity.items) do
+				if item.model == nameOrModel or item.name == nameOrModel then
+					return item.name
+				end
+			end
+		end
+	end
+	return nameOrModel
+end
+
 return TreasureConfig
