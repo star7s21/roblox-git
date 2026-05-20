@@ -11,7 +11,7 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(150,150,150),
 		items = {
-			{ name = "Common Treasure", model = "CommonTreasure" }
+			{ name = "Bear", model = "Bear" }
 		}
 	},
 	{ 
@@ -24,7 +24,7 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(0,170,255),
 		items = {
-			{ name = "Rare Treasure", model = "RareTreasure" }
+			{ name = "69", model = "69" }
 		}
 	},
 	{ 
@@ -37,7 +37,7 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(170,0,255),
 		items = {
-			{ name = "Epic Treasure", model = "EpicTreasure" }
+			{ name = "Monster", model = "Monster" }
 		}
 	},
 	{ 
@@ -50,7 +50,7 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(255,170,0),
 		items = {
-			{ name = "Legendary Treasure", model = "LegendaryTreasure" }
+			{ name = "Dog", model = "Dog" }
 		}
 	},
 }
