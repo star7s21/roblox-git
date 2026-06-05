@@ -1,9 +1,9 @@
 local MarketplaceConfig = {
 	Products = {
-		Treasure = 1000001,
-		Speed = 1000002,
-		Base = 1000003,
-		Rebirth = 1000004,
+		Treasure = 3602746695,
+		Speed = 3602746993,
+		Base = 3602746944,
+		Rebirth = 3602747107,
 	}
 }
 
