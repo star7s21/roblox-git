@@ -63,7 +63,6 @@ remoteEvent.OnServerEvent:Connect(function(player, statName, increment)
 
 	local stat = leaderstats:FindFirstChild(statName)
 	if not stat then
-		-- UpgradeCostなどはplayer直下にある場合がある
 		stat = player:FindFirstChild(statName)
 	end
 

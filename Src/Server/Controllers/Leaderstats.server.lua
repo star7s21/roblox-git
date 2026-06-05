@@ -140,7 +140,7 @@ Players.PlayerAdded:Connect(function(player)
 
 	local jumpUpgradeCost = Instance.new("IntValue", player)
 	jumpUpgradeCost.Name = "JumpUpgradeCost"
-	jumpUpgradeCost.Value = 500 -- 初回コストを500に引き上げ
+	jumpUpgradeCost.Value = 500
 
 	-- =========================
 	-- LOAD

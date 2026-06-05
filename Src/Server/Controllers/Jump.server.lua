@@ -2,7 +2,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
 local pad = workspace:WaitForChild("JumpUpgrade")
 
-local baseCost = 500 -- 初期コストを500へ引き上げ（上げにくくするため）
+local baseCost = 500
 local jumpIncrease = 10
 local debounce = {}
 
@@ -19,7 +19,7 @@ MarketplaceManager.RegisterUpgrade("Jump", function(player)
 	end
 
 	if costValue then
-		costValue.Value = math.floor(costValue.Value * 2.0) -- 課金購入時の次回コスト倍率も2.0倍に
+		costValue.Value = math.floor(costValue.Value * 5.0)
 	end
 end)
 
@@ -81,7 +81,7 @@ prompt.Triggered:Connect(function(player)
 	-- コスト更新
 	local costValue = player:FindFirstChild("JumpUpgradeCost")
 	if costValue then
-		costValue.Value = math.floor(currentCost * 2.0) -- コスト増加倍率を2.0倍に（通常1.5倍から増額）
+		costValue.Value = math.floor(currentCost * 5.0)
 	end
 
 	task.delay(0.2, function()

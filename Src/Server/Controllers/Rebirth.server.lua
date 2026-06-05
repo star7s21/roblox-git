@@ -25,7 +25,7 @@ MarketplaceManager.RegisterUpgrade("Rebirth", function(player)
 	jump.Value = 50
 	rebirths.Value = rebirths.Value + 1
 	upgradeCost.Value = 50
-	jumpUpgradeCost.Value = 50
+	jumpUpgradeCost.Value = 500
 
 	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
 	if humanoid then
@@ -67,7 +67,7 @@ local function doRebirth(player)
 		jump.Value = 50
 		rebirths.Value = rebirths.Value + 1
 		upgradeCost.Value = 50
-		jumpUpgradeCost.Value = 50
+		jumpUpgradeCost.Value = 500
 
 		-- キャラクターに速度適用
 		local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")

@@ -4,7 +4,7 @@ local MarketplaceConfig = {
 		Speed = 3602746993,
 		Base = 3602746944,
 		Rebirth = 3602747107,
-		Jump = 3602747111, -- ジャンプ強化プロダクトID
+		Jump = 3602750251,
 	}
 }
 
