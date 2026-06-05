@@ -127,48 +127,46 @@ end
 local time = 0
 
 RunService.Heartbeat:Connect(function(dt)
-	time += dt
+	time = time + dt
 
 	for i = #waves, 1, -1 do
 		local w = waves[i]
 		local part = w.part
 
-		if not part or not part.Parent then
+		if part and part.Parent then
+			w.z = w.z - (w.speed * dt)
+
+			if w.z < endZ then
+				part:Destroy()
+				table.remove(waves, i)
+			else
+				---------------------------------------------------
+				-- 🌊 蛇行（派手版）
+				---------------------------------------------------
+				local snakeOffset = 0
+
+				if w.snakeEnabled then
+					local t = time * 4 + w.phase
+
+					-- 横揺れ + 波状揺れ（2段構造）
+					snakeOffset =
+						math.sin(t) * w.intensity +
+						math.sin(t * 0.5) * (w.intensity * 1.5)
+				end
+
+				-- 高さ調整（波のサイズ変化に対応）
+				local heightDiffOffset = (part.Size.Y - template.Size.Y) / 2
+
+				part.CFrame = CFrame.new(
+					w.baseX + snakeOffset,
+					w.baseY + heightDiffOffset,
+					w.z
+				)
+				* CFrame.Angles(0, math.rad(-90), 0)
+			end
+		else
 			table.remove(waves, i)
-			continue
 		end
-
-		w.z -= w.speed * dt
-
-		if w.z < endZ then
-			part:Destroy()
-			table.remove(waves, i)
-			continue
-		end
-
-		---------------------------------------------------
-		-- 🌊 蛇行（派手版）
-		---------------------------------------------------
-		local snakeOffset = 0
-
-		if w.snakeEnabled then
-			local t = time * 4 + w.phase
-
-			-- 横揺れ + 波状揺れ（2段構造）
-			snakeOffset =
-				math.sin(t) * w.intensity +
-				math.sin(t * 0.5) * (w.intensity * 1.5)
-		end
-
-		-- 高さ調整（波のサイズ変化に対応）
-		local heightDiffOffset = (part.Size.Y - template.Size.Y) / 2
-
-		part.CFrame = CFrame.new(
-			w.baseX + snakeOffset,
-			w.baseY + heightDiffOffset,
-			w.z
-		)
-		* CFrame.Angles(0, math.rad(-90), 0)
 	end
 end)
 
