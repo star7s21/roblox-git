@@ -140,7 +140,7 @@ Players.PlayerAdded:Connect(function(player)
 
 	local jumpUpgradeCost = Instance.new("IntValue", player)
 	jumpUpgradeCost.Name = "JumpUpgradeCost"
-	jumpUpgradeCost.Value = 50
+	jumpUpgradeCost.Value = 500 -- 初回コストを500に引き上げ
 
 	-- =========================
 	-- LOAD
@@ -181,7 +181,7 @@ Players.PlayerAdded:Connect(function(player)
 		end
 
 		upgradeCost.Value = data.UpgradeCost or 50
-		jumpUpgradeCost.Value = data.JumpUpgradeCost or 50
+		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
 	end
 
 	player:SetAttribute("DataLoaded", true)
@@ -246,7 +246,7 @@ local function save(player)
 		),
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
-		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 50,
+		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 500,
 
 		BaseItems = base and collectBaseData(base) or {}
 	}

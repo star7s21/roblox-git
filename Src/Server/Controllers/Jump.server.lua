@@ -1,11 +1,8 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
-local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
-local formatNumber = Utils.formatNumber
 local pad = workspace:WaitForChild("JumpUpgrade")
 
-local baseCost = 50
+local baseCost = 500 -- 初期コストを500へ引き上げ（上げにくくするため）
 local jumpIncrease = 10
 local debounce = {}
 
@@ -22,17 +19,9 @@ MarketplaceManager.RegisterUpgrade("Jump", function(player)
 	end
 
 	if costValue then
-		costValue.Value = math.floor(costValue.Value * 1.5)
+		costValue.Value = math.floor(costValue.Value * 2.0) -- 課金購入時の次回コスト倍率も2.0倍に
 	end
 end)
-
--- =========================
--- コスト取得
--- =========================
-local function getCost(player)
-	local costValue = player:WaitForChild("JumpUpgradeCost", 10)
-	return costValue and costValue.Value or baseCost
-end
 
 -- =========================
 -- ProximityPrompt
@@ -49,11 +38,13 @@ prompt.ObjectText = ""
 prompt.KeyboardKeyCode = Enum.KeyCode.E
 prompt.HoldDuration = 0
 
--- プレイヤーが近づいたときに個別のコストを表示
-prompt.PromptShown:Connect(function(player)
-	local currentCost = getCost(player)
-	prompt.ActionText = "Upgrade Jump (" .. formatNumber(currentCost) .. " Coins)"
-end)
+-- =========================
+-- コスト取得
+-- =========================
+local function getCost(player)
+	local costValue = player:WaitForChild("JumpUpgradeCost", 10)
+	return costValue and costValue.Value or baseCost
+end
 
 -- =========================
 -- 購入処理
@@ -76,8 +67,7 @@ prompt.Triggered:Connect(function(player)
 		prompt.ActionText = "❌ Not Enough Coins"
 		MarketplaceManager.PromptPurchase(player, "Jump")
 		task.delay(1.5, function()
-			local cost = getCost(player)
-			prompt.ActionText = "Upgrade Jump (" .. formatNumber(cost) .. " Coins)"
+			prompt.ActionText = "Upgrade Jump"
 		end)
 		return
 	end
@@ -89,16 +79,14 @@ prompt.Triggered:Connect(function(player)
 	jump.Value = jump.Value + jumpIncrease
 
 	-- コスト更新
-	local nextCost = math.floor(currentCost * 1.5)
 	local costValue = player:FindFirstChild("JumpUpgradeCost")
 	if costValue then
-		costValue.Value = nextCost
+		costValue.Value = math.floor(currentCost * 2.0) -- コスト増加倍率を2.0倍に（通常1.5倍から増額）
 	end
-
-	prompt.ActionText = "Upgrade Jump (" .. formatNumber(nextCost) .. " Coins)"
 
 	task.delay(0.2, function()
 		debounce[player] = nil
+		prompt.ActionText = "Upgrade Jump"
 	end)
 end)
 
