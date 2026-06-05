@@ -13,19 +13,25 @@ MarketplaceManager.RegisterUpgrade("Rebirth", function(player)
 	if not leaderstats then return end
 
 	local speed = leaderstats:FindFirstChild("Speed")
+	local jump = leaderstats:FindFirstChild("Jump")
 	local rebirths = leaderstats:FindFirstChild("Rebirths")
 	local upgradeCost = player:FindFirstChild("UpgradeCost")
+	local jumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost")
 
-	if not speed or not rebirths or not upgradeCost then return end
+	if not speed or not jump or not rebirths or not upgradeCost or not jumpUpgradeCost then return end
 
 	-- コインを消費せずに他のステータスをリセットしてリバース
 	speed.Value = 16
+	jump.Value = 50
 	rebirths.Value = rebirths.Value + 1
 	upgradeCost.Value = 50
+	jumpUpgradeCost.Value = 50
 
 	local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
 	if humanoid then
+		humanoid.UseJumpPower = true
 		humanoid.WalkSpeed = speed.Value
+		humanoid.JumpPower = jump.Value
 	end
 
 	print(player.Name .. " has Rebirth via Robux! Total: " .. rebirths.Value)
@@ -45,10 +51,12 @@ local function doRebirth(player)
 
 	local coins = leaderstats:FindFirstChild("Coins")
 	local speed = leaderstats:FindFirstChild("Speed")
+	local jump = leaderstats:FindFirstChild("Jump")
 	local rebirths = leaderstats:FindFirstChild("Rebirths")
 	local upgradeCost = player:FindFirstChild("UpgradeCost")
+	local jumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost")
 
-	if not coins or not speed or not rebirths or not upgradeCost then return end
+	if not coins or not speed or not jump or not rebirths or not upgradeCost or not jumpUpgradeCost then return end
 
 	local currentCost = BASE_REBIRTH_COST * (COST_MULTIPLIER ^ rebirths.Value)
 
@@ -56,13 +64,17 @@ local function doRebirth(player)
 		-- ステータスリセット
 		coins.Value = 0
 		speed.Value = 16
+		jump.Value = 50
 		rebirths.Value = rebirths.Value + 1
 		upgradeCost.Value = 50
+		jumpUpgradeCost.Value = 50
 
 		-- キャラクターに速度適用
 		local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
 		if humanoid then
+			humanoid.UseJumpPower = true
 			humanoid.WalkSpeed = speed.Value
+			humanoid.JumpPower = jump.Value
 		end
 
 		print(player.Name .. " has Rebirth! Total: " .. rebirths.Value)

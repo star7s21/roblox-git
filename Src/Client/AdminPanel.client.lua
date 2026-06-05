@@ -78,6 +78,7 @@ end
 createStatControl("Coins", "Coins", 1000000)
 createStatControl("Rebirths", "Rebirths", 1)
 createStatControl("Speed", "Speed", 1)
+createStatControl("Jump", "Jump", 10)
 createStatControl("BaseLevel", "BaseLevel", 1)
 
 -- 表示切り替え

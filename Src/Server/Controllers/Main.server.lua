@@ -40,8 +40,16 @@ local function setupWave(wave)
 		end
 
 		local root = character:FindFirstChild("HumanoidRootPart")
-		if root and root.Position.Y < 7 then
-			return
+		if root then
+			-- 地面付近（安全地帯など）はスルー
+			if root.Position.Y < 7 then
+				return
+			end
+			-- 波の頂点よりプレイヤーの足元が高ければ（ジャンプして飛び越えていれば）スルー
+			local waveTop = wave.Position.Y + (wave.Size.Y / 2)
+			if (root.Position.Y - 3) > waveTop then
+				return
+			end
 		end
 
 		humanoid.Health = 0
@@ -76,13 +84,21 @@ local function spawnWave()
 
 	local basePosition = Vector3.new(xOffset, 57, startZ)
 
+	-- 🔥 波の高さ（Yサイズ）もランダムに変更（通常の50%〜180%）
+	local heightScale = math.random(50, 180) / 100
+	local waveHeight = template.Size.Y * heightScale
+
 	wave.Size = Vector3.new(
 		waveWidth,
-		wave.Size.Y,
+		waveHeight,
 		wave.Size.Z
 	)
 
-	wave.CFrame = CFrame.new(basePosition) * CFrame.Angles(0, math.rad(-90), 0)
+	-- 高さが変わった時に底面が合わさるよう調整
+	local heightDiffOffset = (waveHeight - template.Size.Y) / 2
+	local adjustedPosition = basePosition + Vector3.new(0, heightDiffOffset, 0)
+
+	wave.CFrame = CFrame.new(adjustedPosition) * CFrame.Angles(0, math.rad(-90), 0)
 
 	local speed = math.random(minSpeed, maxSpeed)
 
@@ -144,9 +160,12 @@ RunService.Heartbeat:Connect(function(dt)
 				math.sin(t * 0.5) * (w.intensity * 1.5)
 		end
 
+		-- 高さ調整（波のサイズ変化に対応）
+		local heightDiffOffset = (part.Size.Y - template.Size.Y) / 2
+
 		part.CFrame = CFrame.new(
 			w.baseX + snakeOffset,
-			w.baseY,
+			w.baseY + heightDiffOffset,
 			w.z
 		)
 		* CFrame.Angles(0, math.rad(-90), 0)

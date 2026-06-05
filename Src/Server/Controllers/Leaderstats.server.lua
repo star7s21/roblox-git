@@ -122,6 +122,10 @@ Players.PlayerAdded:Connect(function(player)
 	speed.Name = "Speed"
 	speed.Value = 24
 
+	local jump = Instance.new("IntValue", leaderstats)
+	jump.Name = "Jump"
+	jump.Value = 50
+
 	local rebirths = Instance.new("IntValue", leaderstats)
 	rebirths.Name = "Rebirths"
 	rebirths.Value = 0
@@ -133,6 +137,10 @@ Players.PlayerAdded:Connect(function(player)
 	local upgradeCost = Instance.new("IntValue", player)
 	upgradeCost.Name = "UpgradeCost"
 	upgradeCost.Value = 50
+
+	local jumpUpgradeCost = Instance.new("IntValue", player)
+	jumpUpgradeCost.Name = "JumpUpgradeCost"
+	jumpUpgradeCost.Value = 50
 
 	-- =========================
 	-- LOAD
@@ -167,7 +175,13 @@ Players.PlayerAdded:Connect(function(player)
 			speed.Value = data.Speed
 		end
 
+		-- 🔥 Jumpバグ防止
+		if data.Jump and data.Jump > 0 then
+			jump.Value = data.Jump
+		end
+
 		upgradeCost.Value = data.UpgradeCost or 50
+		jumpUpgradeCost.Value = data.JumpUpgradeCost or 50
 	end
 
 	player:SetAttribute("DataLoaded", true)
@@ -225,7 +239,14 @@ local function save(player)
 			24
 		),
 
+		-- 🔥 Jump安全保存
+		Jump = math.max(
+			leaderstats:FindFirstChild("Jump") and leaderstats.Jump.Value or 50,
+			50
+		),
+
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
+		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 50,
 
 		BaseItems = base and collectBaseData(base) or {}
 	}

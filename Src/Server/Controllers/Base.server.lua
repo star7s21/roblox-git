@@ -22,6 +22,7 @@ local MAX_BASE_LEVEL = 4
 
 local used = {}
 local speedConnections = {}
+local jumpConnections = {}
 local playerBases = {}
 
 -- 課金アップグレード処理の登録
@@ -132,20 +133,32 @@ local function applySpeed(player, character)
 		local leaderstats = player:WaitForChild("leaderstats", 10)
 		if not leaderstats then return end
 		local speed = leaderstats:WaitForChild("Speed", 10)
+		local jump = leaderstats:WaitForChild("Jump", 10)
 
-		if not humanoid or not speed then return end
+		if not humanoid or not speed or not jump then return end
 
+		humanoid.UseJumpPower = true
 		humanoid.WalkSpeed = speed.Value
+		humanoid.JumpPower = jump.Value
 
 		-- 古い接続があれば解除
 		if speedConnections[player] then
 			speedConnections[player]:Disconnect()
+		end
+		if jumpConnections[player] then
+			jumpConnections[player]:Disconnect()
 		end
 
 		-- 新しいキャラクターのHumanoidに対して接続
 		speedConnections[player] = speed.Changed:Connect(function()
 			if humanoid and humanoid.Parent then
 				humanoid.WalkSpeed = speed.Value
+			end
+		end)
+
+		jumpConnections[player] = jump.Changed:Connect(function()
+			if humanoid and humanoid.Parent then
+				humanoid.JumpPower = jump.Value
 			end
 		end)
 	end)
@@ -899,5 +912,10 @@ Players.PlayerRemoving:Connect(function(player)
 	if speedConnections[player] then
 		speedConnections[player]:Disconnect()
 		speedConnections[player] = nil
+	end
+
+	if jumpConnections[player] then
+		jumpConnections[player]:Disconnect()
+		jumpConnections[player] = nil
 	end
 end)

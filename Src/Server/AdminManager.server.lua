@@ -12,6 +12,7 @@ local ALLOWED_STATS = {
 	Coins = true,
 	Rebirths = true,
 	Speed = true,
+	Jump = true,
 	BaseLevel = true,
 }
 
@@ -28,6 +29,11 @@ local STAT_LIMITS = {
 
 	Speed = {
 		min = 16,
+		max = 500
+	},
+
+	Jump = {
+		min = 50,
 		max = 500
 	},
 
