@@ -1,8 +1,27 @@
+local MarketplaceService = game:GetService("MarketplaceService")
 local pad = workspace:WaitForChild("SpeedUpgrade")
 
 local baseCost = 50
 local speedIncrease = 4
 local debounce = {}
+
+local PRODUCT_SPEED = 1000002
+
+_G.DoRobuxSpeedUpgrade = function(player)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	if not leaderstats then return end
+
+	local speed = leaderstats:FindFirstChild("Speed")
+	local costValue = player:FindFirstChild("UpgradeCost")
+
+	if speed then
+		speed.Value = speed.Value + speedIncrease
+	end
+
+	if costValue then
+		costValue.Value = math.floor(costValue.Value * 1.5)
+	end
+end
 
 -- =========================
 -- ProximityPrompt
@@ -46,7 +65,11 @@ prompt.Triggered:Connect(function(player)
 
 	if coins.Value < currentCost then
 		prompt.ActionText = "❌ Not Enough Coins"
-		task.delay(0.5, function()
+		_G.PendingPurchases[player.UserId] = {
+			Type = "Speed"
+		}
+		MarketplaceService:PromptProductPurchase(player, PRODUCT_SPEED)
+		task.delay(1.5, function()
 			prompt.ActionText = "Upgrade Speed"
 		end)
 		return
