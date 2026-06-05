@@ -1,13 +1,14 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local MarketplaceService = game:GetService("MarketplaceService")
+
+local ServerScriptService = game:GetService("ServerScriptService")
+local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
 
 local BASE_REBIRTH_COST = 1000
 local COST_MULTIPLIER = 2
 
-local PRODUCT_REBIRTH = 1000004
-
-_G.DoRobuxRebirth = function(player)
+-- 課金リバースの処理登録
+MarketplaceManager.RegisterUpgrade("Rebirth", function(player)
 	local leaderstats = player:FindFirstChild("leaderstats")
 	if not leaderstats then return end
 
@@ -28,7 +29,7 @@ _G.DoRobuxRebirth = function(player)
 	end
 
 	print(player.Name .. " has Rebirth via Robux! Total: " .. rebirths.Value)
-end
+end)
 
 -- RemoteEventの作成/取得
 local remote = ReplicatedStorage:FindFirstChild("RebirthEvent")
@@ -66,10 +67,7 @@ local function doRebirth(player)
 
 		print(player.Name .. " has Rebirth! Total: " .. rebirths.Value)
 	else
-		_G.PendingPurchases[player.UserId] = {
-			Type = "Rebirth"
-		}
-		MarketplaceService:PromptProductPurchase(player, PRODUCT_REBIRTH)
+		MarketplaceManager.PromptPurchase(player, "Rebirth")
 		print(player.Name .. " needs " .. currentCost .. " coins for Rebirth.")
 	end
 end

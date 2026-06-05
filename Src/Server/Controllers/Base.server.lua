@@ -2,9 +2,10 @@ local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
-local MarketplaceService = game:GetService("MarketplaceService")
 
-local TreasureConfig = require(game:GetService("ServerScriptService").Server.Services.TreasureConfig)
+local ServerScriptService = game:GetService("ServerScriptService")
+local TreasureConfig = require(ServerScriptService.Server.Services.TreasureConfig)
+local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
 local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
 local formatNumber = Utils.formatNumber
 
@@ -19,62 +20,30 @@ local SPACING = 70
 local MAX_SLOTS = 7
 local MAX_BASE_LEVEL = 4
 
--- Robux 開発者プロダクトID (プレイスの設定に合わせて変更してください)
-local PRODUCT_TREASURE = 1000001
-local PRODUCT_SPEED = 1000002
-local PRODUCT_BASE = 1000003
-local PRODUCT_REBIRTH = 1000004
-
-_G.PendingPurchases = _G.PendingPurchases or {}
-
 local used = {}
 local speedConnections = {}
 local playerBases = {}
 
--- 購入レシート処理の登録
-MarketplaceService.ProcessReceipt = function(receiptInfo)
-	local userId = receiptInfo.PlayerId
-	local productId = receiptInfo.ProductId
-	local player = Players:GetPlayerByUserId(userId)
-
-	if not player then
-		return Enum.ProductPurchaseDecision.NotProcessedYet
+-- 課金アップグレード処理の登録
+MarketplaceManager.RegisterUpgrade("Treasure", function(player, extraData)
+	local placePart = extraData and extraData.PlacePart
+	if placePart and placePart.Parent then
+		local level = placePart:GetAttribute("Level") or 1
+		placePart:SetAttribute("Level", level + 1)
 	end
+end)
 
-	local pending = _G.PendingPurchases[userId]
-	if not pending then
-		return Enum.ProductPurchaseDecision.PurchaseGranted
-	end
-
-	if productId == PRODUCT_TREASURE and pending.Type == "Treasure" then
-		local placePart = pending.PlacePart
-		if placePart and placePart.Parent then
-			local level = placePart:GetAttribute("Level") or 1
-			placePart:SetAttribute("Level", level + 1)
-		end
-	elseif productId == PRODUCT_BASE and pending.Type == "Base" then
-		local base = pending.Base
-		if base and base.Parent then
-			local level = base:GetAttribute("BaseLevel") or 1
-			local leaderstats = player:FindFirstChild("leaderstats")
-			local baseLevelStat = leaderstats and leaderstats:FindFirstChild("BaseLevel")
-			if baseLevelStat then
-				baseLevelStat.Value = level + 1
-			end
-		end
-	elseif productId == PRODUCT_SPEED and pending.Type == "Speed" then
-		if _G.DoRobuxSpeedUpgrade then
-			_G.DoRobuxSpeedUpgrade(player)
-		end
-	elseif productId == PRODUCT_REBIRTH and pending.Type == "Rebirth" then
-		if _G.DoRobuxRebirth then
-			_G.DoRobuxRebirth(player)
+MarketplaceManager.RegisterUpgrade("Base", function(player, extraData)
+	local base = extraData and extraData.Base
+	if base and base.Parent then
+		local level = base:GetAttribute("BaseLevel") or 1
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local baseLevelStat = leaderstats and leaderstats:FindFirstChild("BaseLevel")
+		if baseLevelStat then
+			baseLevelStat.Value = level + 1
 		end
 	end
-
-	_G.PendingPurchases[userId] = nil
-	return Enum.ProductPurchaseDecision.PurchaseGranted
-end
+end)
 
 local function assignSlot(player)
 	for i = 1, MAX_SLOTS do
@@ -498,11 +467,9 @@ local function setupSlot(player, base, slot)
 					coins.Value = coins.Value - cost
 					placePart:SetAttribute("Level", level + 1)
 				else
-					_G.PendingPurchases[player.UserId] = {
-						Type = "Treasure",
+					MarketplaceManager.PromptPurchase(player, "Treasure", {
 						PlacePart = placePart
-					}
-					MarketplaceService:PromptProductPurchase(player, PRODUCT_TREASURE)
+					})
 				end
 			end
 		end)
@@ -730,11 +697,9 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 					baseLevelStat.Value = nextLevel 
 				end
 			else
-				_G.PendingPurchases[player.UserId] = {
-					Type = "Base",
+				MarketplaceManager.PromptPurchase(player, "Base", {
 					Base = base
-				}
-				MarketplaceService:PromptProductPurchase(player, PRODUCT_BASE)
+				})
 			end
 		end
 	end)
