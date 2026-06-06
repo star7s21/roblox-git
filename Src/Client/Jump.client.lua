@@ -56,29 +56,31 @@ if not frame then
 end
 
 local jumpBtn = frame:FindFirstChild("JumpToggle")
-if not jumpBtn then
-	jumpBtn = Instance.new("TextButton")
-	jumpBtn.Name = "JumpToggle"
-	jumpBtn.Size = UDim2.new(1, 0, 0, 40)
-	jumpBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
-	jumpBtn.TextColor3 = Color3.new(1, 1, 1)
-	jumpBtn.TextSize = 14
-	jumpBtn.Font = Enum.Font.SourceSansBold
-	jumpBtn.Text = "Jump Limit: OFF"
-	jumpBtn.Parent = frame
-
-	local isLimited = false
-	jumpBtn.MouseButton1Click:Connect(function()
-		isLimited = not isLimited
-		if isLimited then
-			jumpBtn.Text = "Jump Limit: ON"
-			jumpBtn.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
-		else
-			jumpBtn.Text = "Jump Limit: OFF"
-			jumpBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
-		end
-		if toggleRemote then
-			toggleRemote:FireServer(isLimited)
-		end
-	end)
+if jumpBtn then
+	jumpBtn:Destroy()
 end
+
+jumpBtn = Instance.new("TextButton")
+jumpBtn.Name = "JumpToggle"
+jumpBtn.Size = UDim2.new(1, 0, 0, 40)
+jumpBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+jumpBtn.TextColor3 = Color3.new(1, 1, 1)
+jumpBtn.TextSize = 14
+jumpBtn.Font = Enum.Font.SourceSansBold
+jumpBtn.Text = "Jump Limit: OFF"
+jumpBtn.Parent = frame
+
+local isLimited = false
+jumpBtn.MouseButton1Click:Connect(function()
+	isLimited = not isLimited
+	if isLimited then
+		jumpBtn.Text = "Jump Limit: ON"
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+	else
+		jumpBtn.Text = "Jump Limit: OFF"
+		jumpBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+	end
+	if toggleRemote then
+		toggleRemote:FireServer(isLimited)
+	end
+end)
