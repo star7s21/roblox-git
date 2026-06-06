@@ -55,27 +55,30 @@ if not frame then
 	layout.Parent = frame
 end
 
-local speedBtn = Instance.new("TextButton")
-speedBtn.Name = "SpeedToggle"
-speedBtn.Size = UDim2.new(1, 0, 0, 40)
-speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
-speedBtn.TextColor3 = Color3.new(1, 1, 1)
-speedBtn.TextSize = 14
-speedBtn.Font = Enum.Font.SourceSansBold
-speedBtn.Text = "Speed Limit: OFF"
-speedBtn.Parent = frame
+local speedBtn = frame:FindFirstChild("SpeedToggle")
+if not speedBtn then
+	speedBtn = Instance.new("TextButton")
+	speedBtn.Name = "SpeedToggle"
+	speedBtn.Size = UDim2.new(1, 0, 0, 40)
+	speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+	speedBtn.TextColor3 = Color3.new(1, 1, 1)
+	speedBtn.TextSize = 14
+	speedBtn.Font = Enum.Font.SourceSansBold
+	speedBtn.Text = "Speed Limit: OFF"
+	speedBtn.Parent = frame
 
-local isLimited = false
-speedBtn.MouseButton1Click:Connect(function()
-	isLimited = not isLimited
-	if isLimited then
-		speedBtn.Text = "Speed Limit: ON"
-		speedBtn.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
-	else
-		speedBtn.Text = "Speed Limit: OFF"
-		speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
-	end
-	if toggleRemote then
-		toggleRemote:FireServer(isLimited)
-	end
-end)
+	local isLimited = false
+	speedBtn.MouseButton1Click:Connect(function()
+		isLimited = not isLimited
+		if isLimited then
+			speedBtn.Text = "Speed Limit: ON"
+			speedBtn.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+		else
+			speedBtn.Text = "Speed Limit: OFF"
+			speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+		end
+		if toggleRemote then
+			toggleRemote:FireServer(isLimited)
+		end
+	end)
+end
