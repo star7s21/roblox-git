@@ -12,10 +12,16 @@ if not player:GetAttribute("IsAdmin") then
 end
 
 -- UI作成
-local screenGui = Instance.new("ScreenGui")
+local playerGui = player:WaitForChild("PlayerGui")
+local screenGui = playerGui:FindFirstChild("AdminGui")
+if screenGui then
+	screenGui:Destroy()
+end
+
+screenGui = Instance.new("ScreenGui")
 screenGui.Name = "AdminGui"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.Parent = playerGui
 
 -- 歯車アイコン（ImageButton）
 local gearButton = Instance.new("ImageButton")
