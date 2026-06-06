@@ -32,8 +32,27 @@ game.Players.PlayerAdded:Connect(function(player)
 
 			item.PrimaryPart = item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")
 
+			local spawnPos = root.Position + Vector3.new(0, 0, -5)
 			if item.PrimaryPart then
-				item:PivotTo(root.CFrame * CFrame.new(0, 0, -5))
+				spawnPos = (root.CFrame * CFrame.new(0, 0, -5)).Position
+			end
+
+			local raycastParams = RaycastParams.new()
+			raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+			raycastParams.FilterDescendantsInstances = {character, item}
+			local raycastResult = workspace:Raycast(spawnPos, Vector3.new(0, -300, 0), raycastParams)
+			local groundPos = raycastResult and raycastResult.Position or spawnPos
+
+			local offset = Vector3.new(0, 0, 0)
+			if item.PrimaryPart then
+				local size = item:GetExtentsSize()
+				offset = Vector3.new(0, size.Y / 2, 0)
+			end
+
+			if item.PrimaryPart then
+				item:PivotTo(CFrame.new(groundPos + offset))
+			else
+				item:MoveTo(groundPos)
 			end
 
 			-- 再取得可能にする（プレイヤー状態クリアより前に実行）

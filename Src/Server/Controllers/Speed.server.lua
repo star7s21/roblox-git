@@ -6,6 +6,64 @@ local baseCost = 50
 local speedIncrease = 4
 local debounce = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local toggleRemote = ReplicatedStorage:FindFirstChild("ToggleSpeedLimit")
+if not toggleRemote then
+	toggleRemote = Instance.new("RemoteEvent")
+	toggleRemote.Name = "ToggleSpeedLimit"
+	toggleRemote.Parent = ReplicatedStorage
+end
+
+local speedLimitActive = {}
+
+local function applySpeedValue(player, char)
+	if not char then return end
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+
+	local isLimited = speedLimitActive[player.UserId] or false
+	if isLimited then
+		humanoid.WalkSpeed = 16 -- 初期値
+	else
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local speedAttr = leaderstats and leaderstats:FindFirstChild("Speed")
+		humanoid.WalkSpeed = speedAttr and speedAttr.Value or 16
+	end
+end
+
+toggleRemote.OnServerEvent:Connect(function(player, isLimited)
+	speedLimitActive[player.UserId] = isLimited
+	applySpeedValue(player, player.Character)
+end)
+
+game.Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(char)
+		task.wait(0.5) -- キャラクター初期化を少し待つ
+		applySpeedValue(player, char)
+	end)
+end)
+
+-- 既存のスピード値変化イベントの監視
+local function watchSpeedValue(player)
+	local leaderstats = player:WaitForChild("leaderstats", 10)
+	if leaderstats then
+		local speed = leaderstats:WaitForChild("Speed", 10)
+		if speed then
+			speed.Changed:Connect(function()
+				applySpeedValue(player, player.Character)
+			end)
+		end
+	end
+end
+
+game.Players.PlayerAdded:Connect(watchSpeedValue)
+for _, player in ipairs(game.Players:GetPlayers()) do
+	task.spawn(watchSpeedValue, player)
+	if player.Character then
+		task.spawn(applySpeedValue, player, player.Character)
+	end
+end
+
 -- 課金スピードアップの処理登録
 MarketplaceManager.RegisterUpgrade("Speed", function(player)
 	local leaderstats = player:FindFirstChild("leaderstats")
@@ -21,6 +79,8 @@ MarketplaceManager.RegisterUpgrade("Speed", function(player)
 	if costValue then
 		costValue.Value = math.floor(costValue.Value * 1.5)
 	end
+
+	applySpeedValue(player, player.Character)
 end)
 
 -- =========================
@@ -84,6 +144,8 @@ prompt.Triggered:Connect(function(player)
 		costValue.Value = math.floor(currentCost * 1.5)
 	end
 
+	applySpeedValue(player, player.Character)
+
 	task.delay(0.2, function()
 		debounce[player] = nil
 		prompt.ActionText = "Upgrade Speed"
@@ -95,4 +157,5 @@ end)
 -- =========================
 game.Players.PlayerRemoving:Connect(function(player)
 	debounce[player] = nil
+	speedLimitActive[player.UserId] = nil
 end)
