@@ -19,7 +19,7 @@ local ALLOWED_STATS = {
 local STAT_LIMITS = {
 	Coins = {
 		min = 0,
-		max = 999999999
+		max = 999999999999
 	},
 
 	Rebirths = {

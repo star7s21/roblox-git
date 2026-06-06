@@ -75,10 +75,10 @@ local function createStatControl(name, statName, increment)
 end
 
 -- 各ステータスのコントロールを追加
-createStatControl("Coins", "Coins", 1000000)
+createStatControl("Coins", "Coins", 1000000000)
 createStatControl("Rebirths", "Rebirths", 1)
-createStatControl("Speed", "Speed", 1)
-createStatControl("Jump", "Jump", 10)
+createStatControl("Speed", "Speed", 20)
+createStatControl("Jump", "Jump", 20)
 createStatControl("BaseLevel", "BaseLevel", 1)
 
 -- 表示切り替え

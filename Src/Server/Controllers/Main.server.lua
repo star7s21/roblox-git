@@ -5,7 +5,7 @@ local template = workspace:WaitForChild("Wave")
 local MAP_WIDTH = 512
 local HALF_MAP = MAP_WIDTH / 2
 
-local startZ = 512
+local startZ = 1024
 local endZ = -700
 
 local minSpeed = 50
