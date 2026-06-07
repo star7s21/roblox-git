@@ -40,8 +40,8 @@ game.Players.PlayerAdded:Connect(function(player)
 			local raycastParams = RaycastParams.new()
 			raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 			raycastParams.FilterDescendantsInstances = {character, item}
-			local raycastResult = workspace:Raycast(spawnPos, Vector3.new(0, -300, 0), raycastParams)
-			local groundPos = raycastResult and raycastResult.Position or spawnPos
+			local raycastResult = workspace:Raycast(spawnPos + Vector3.new(0, 5, 0), Vector3.new(0, -1000, 0), raycastParams)
+			local groundPos = raycastResult and raycastResult.Position or Vector3.new(spawnPos.X, 0, spawnPos.Z)
 
 			local offset = Vector3.new(0, 0, 0)
 			if item.PrimaryPart then

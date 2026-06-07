@@ -55,22 +55,36 @@ if not frame then
 	layout.Parent = frame
 end
 
+local isLimited = false
 local speedBtn = frame:FindFirstChild("SpeedToggle")
 if speedBtn then
+	if speedBtn.Text == "Speed Limit: ON" then
+		isLimited = true
+	end
 	speedBtn:Destroy()
 end
 
 speedBtn = Instance.new("TextButton")
 speedBtn.Name = "SpeedToggle"
 speedBtn.Size = UDim2.new(1, 0, 0, 40)
-speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+if isLimited then
+	speedBtn.Text = "Speed Limit: ON"
+	speedBtn.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+else
+	speedBtn.Text = "Speed Limit: OFF"
+	speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+end
 speedBtn.TextColor3 = Color3.new(1, 1, 1)
 speedBtn.TextSize = 14
 speedBtn.Font = Enum.Font.SourceSansBold
-speedBtn.Text = "Speed Limit: OFF"
 speedBtn.Parent = frame
 
-local isLimited = false
+local function sendUpdate()
+	if toggleRemote then
+		toggleRemote:FireServer(isLimited)
+	end
+end
+
 speedBtn.MouseButton1Click:Connect(function()
 	isLimited = not isLimited
 	if isLimited then
@@ -80,7 +94,12 @@ speedBtn.MouseButton1Click:Connect(function()
 		speedBtn.Text = "Speed Limit: OFF"
 		speedBtn.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
 	end
-	if toggleRemote then
-		toggleRemote:FireServer(isLimited)
-	end
+	sendUpdate()
+end)
+
+-- 初回およびリスポーン時の同期
+sendUpdate()
+player.CharacterAdded:Connect(function()
+	task.wait(0.2)
+	sendUpdate()
 end)
