@@ -12,48 +12,81 @@ local rebirths = leaderstats:WaitForChild("Rebirths")
 local BASE_REBIRTH_COST = 1000
 local COST_MULTIPLIER = 2
 
-local gui = Instance.new("ScreenGui")
-gui.Parent = player:WaitForChild("PlayerGui")
+local toggleSpeedRemote = ReplicatedStorage:WaitForChild("ToggleSpeedLimit", 10)
+local toggleJumpRemote = ReplicatedStorage:WaitForChild("ToggleJumpLimit", 10)
+local rebirthRemote = ReplicatedStorage:FindFirstChild("RebirthEvent")
 
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(0,220,0,70)
-label.AnchorPoint = Vector2.new(1, 0)
-label.Position = UDim2.new(1, -10, 0, 10)
-label.BackgroundColor3 = Color3.fromRGB(0,0,0)
-label.TextColor3 = Color3.fromRGB(255,255,255)
-label.TextWrapped = true
-label.TextSize = 14
-label.Font = Enum.Font.GothamBold
-label.Parent = gui
+local playerGui = player:WaitForChild("PlayerGui")
+local menuUi = playerGui:WaitForChild("MenuUI")
+local frame = menuUi:WaitForChild("Frame")
 
-local rebirthButton = Instance.new("TextButton")
-rebirthButton.Size = UDim2.new(0,220,0,40)
-rebirthButton.AnchorPoint = Vector2.new(1, 0)
-rebirthButton.Position = UDim2.new(1, -10, 0, 90)
-rebirthButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-rebirthButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-rebirthButton.Font = Enum.Font.GothamBold
-rebirthButton.TextScaled = true
-rebirthButton.Parent = gui
+local coinText = frame:WaitForChild("CoinText")
+local jumpButton = frame:WaitForChild("JumpButton")
+local speedButton = frame:WaitForChild("SpeedButton")
+local rebirthButton = frame:WaitForChild("RebirthButton")
+
+local jumpText = jumpButton:WaitForChild("Text")
+local speedText = speedButton:WaitForChild("Text")
+local rebirthText = rebirthButton:WaitForChild("Text")
+
+local isSpeedLimited = false
+local isJumpLimited = false
 
 local function update()
-	label.Text = "Rebirths: "..formatNumber(rebirths.Value).." | Coins: "..formatNumber(coins.Value).."\nSpeed: "..formatNumber(speed.Value).." | Jump: "..formatNumber(jump.Value)
+	coinText.Text = "Coins: " .. formatNumber(coins.Value)
 	
 	local cost = BASE_REBIRTH_COST * (COST_MULTIPLIER ^ rebirths.Value)
-	rebirthButton.Text = "Rebirth (Cost: " .. formatNumber(cost) .. ")"
+	rebirthText.Text = "Rebirths: " .. formatNumber(rebirths.Value) .. "\n(Cost: " .. formatNumber(cost) .. ")"
 	
 	if coins.Value >= cost then
 		rebirthButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
 	else
 		rebirthButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 	end
+
+	speedText.Text = "Speed: " .. formatNumber(speed.Value) .. "\nLimit: " .. (isSpeedLimited and "ON" or "OFF")
+	if isSpeedLimited then
+		speedButton.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+	else
+		speedButton.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+	end
+
+	jumpText.Text = "Jump: " .. formatNumber(jump.Value) .. "\nLimit: " .. (isJumpLimited and "ON" or "OFF")
+	if isJumpLimited then
+		jumpButton.BackgroundColor3 = Color3.fromRGB(80, 220, 80)
+	else
+		jumpButton.BackgroundColor3 = Color3.fromRGB(220, 80, 80)
+	end
 end
 
 rebirthButton.MouseButton1Click:Connect(function()
-	local remote = ReplicatedStorage:FindFirstChild("RebirthEvent")
-	if remote then
-		remote:FireServer()
+	if rebirthRemote then
+		rebirthRemote:FireServer()
 	end
+end)
+
+local function sendSpeedUpdate()
+	if toggleSpeedRemote then
+		toggleSpeedRemote:FireServer(isSpeedLimited)
+	end
+end
+
+local function sendJumpUpdate()
+	if toggleJumpRemote then
+		toggleJumpRemote:FireServer(isJumpLimited)
+	end
+end
+
+speedButton.MouseButton1Click:Connect(function()
+	isSpeedLimited = not isSpeedLimited
+	sendSpeedUpdate()
+	update()
+end)
+
+jumpButton.MouseButton1Click:Connect(function()
+	isJumpLimited = not isJumpLimited
+	sendJumpUpdate()
+	update()
 end)
 
 coins.Changed:Connect(update)
@@ -61,4 +94,13 @@ speed.Changed:Connect(update)
 jump.Changed:Connect(update)
 rebirths.Changed:Connect(update)
 
+-- 初回およびリスポーン時の同期
+sendSpeedUpdate()
+sendJumpUpdate()
 update()
+
+player.CharacterAdded:Connect(function()
+	task.wait(0.2)
+	sendSpeedUpdate()
+	sendJumpUpdate()
+end)
