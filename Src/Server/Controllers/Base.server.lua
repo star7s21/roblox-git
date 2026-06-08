@@ -611,7 +611,9 @@ local function setVisible(obj, visible)
 				child.CanQuery = visible
 				child.CanTouch = visible
 			elseif child:IsA("ProximityPrompt") then
-				child.Enabled = visible
+				if not visible then
+					child.Enabled = false
+				end
 			elseif child:IsA("LayerCollector") then -- BillboardGui, SurfaceGui
 				child.Enabled = visible
 			end
@@ -650,7 +652,7 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 	local displayPart = board.PrimaryPart or board:FindFirstChildWhichIsA("BasePart")
 	if not displayPart then return end
 
-	local prompt = board:FindFirstChildWhichIsA("ProximityPrompt") or Instance.new("ProximityPrompt")
+	local prompt = board:FindFirstChildWhichIsA("ProximityPrompt", true) or Instance.new("ProximityPrompt")
 	prompt.ActionText = "Upgrade Base"
 	prompt.KeyboardKeyCode = Enum.KeyCode.G
 	prompt.Parent = displayPart
@@ -677,6 +679,11 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 
 	local function updateBoard()
 		local level = base:GetAttribute("BaseLevel") or 1
+		if floorLevel ~= 1 then
+			prompt.Enabled = false
+			return
+		end
+
 		if level >= MAX_BASE_LEVEL then
 			prompt.Enabled = false
 			gui.Label.Text = "LEVEL MAX"
