@@ -13,6 +13,9 @@
       "AdminUpdateStat": {
         "$className": "RemoteEvent"
       },
+      "DropTreasureEvent": {
+        "$className": "RemoteEvent"
+      },
       "Shared": {
         "$path": "Src/Shared"
       }

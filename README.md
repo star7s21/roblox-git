@@ -1,4 +1,4 @@
-# Roblox 津波サバイバル タイクーン （仮）
+# Roblox 津波サバイバル タイクーン
 
 Roblox上で動作する、津波サバイバル、アイテム収集、および基地建設を組み合わせたゲームです。
 
@@ -77,23 +77,17 @@ Src
 ┗ default.project.json    -- Rojoプロジェクト構成ファイル
 ```
 
-Roblox Studioでのディレクトリ構成
+Roblox Studioで作成したディレクトリ構成
 ```bash
 Workspace
 ┗Part：マップ生成用パーツ
 ReplicatedStorage
-┣Treasures（Folder）：各アイテムのパーツ
-┃　┣CommonTreasure（Model）
-┃　┣EpicTreasure（Model）
-┃　┣LegendaryTreasure（Model）
-┃　┗RareTreasure（Model）
-┗DropTreasureEvent（RemoteEvent）：アイテム手放すイベント
+┗Treasures（Folder）：各アイテムのパーツのModel
 ServerStorage
 ┗BaseModel（Model）：基地パーツ
 StarterGui
-┗DropUI（ScreenGUI）：ドロップボタン
-　┗Frame（Frame）
-　　┗DropBotton（TextBotton）
+┣DropUI（ScreenGUI）：Dropボタン
+┗MenuUI（ScreenGUI）：Rebirth/Speed/Jumpボタン、コイン表示
 ```
 
 ---
@@ -109,4 +103,4 @@ StarterGui
 ## 開発メモ
 
 - サーバーサイド主導の設計により、セキュリティとデータの整合性を確保
-- Rojo + Git による現代的なRoblox開発フロー
+- Rojo + Git + AI(Aider) による現代的なRoblox開発フロー
