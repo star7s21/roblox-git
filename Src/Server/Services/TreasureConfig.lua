@@ -1,3 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TreasureTranslation = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("TreasureTranslation"))
+
 local TreasureConfig = {}
 
 TreasureConfig.Rarities = {
@@ -81,6 +84,40 @@ function TreasureConfig.GetDisplayName(nameOrModel)
 		end
 	end
 	return nameOrModel
+end
+
+local function getLocaleId(playerOrLocale)
+	if type(playerOrLocale) == "string" then
+		return playerOrLocale
+	elseif typeof(playerOrLocale) == "Instance" and playerOrLocale:IsA("Player") then
+		local success, localeId = pcall(function()
+			return playerOrLocale.LocaleId
+		end)
+		if success then
+			return localeId
+		end
+	end
+	
+	local LocalizationService = game:GetService("LocalizationService")
+	local success, localeId = pcall(function()
+		return LocalizationService.RobloxLocaleId
+	end)
+	if success then
+		return localeId
+	end
+	
+	return "en-us"
+end
+
+function TreasureConfig.GetLocalizedRarityName(rarityName, playerOrLocale)
+	local localeId = getLocaleId(playerOrLocale)
+	return TreasureTranslation.Translate(rarityName, localeId)
+end
+
+function TreasureConfig.GetLocalizedDisplayName(nameOrModel, playerOrLocale)
+	local localeId = getLocaleId(playerOrLocale)
+	local displayName = TreasureConfig.GetDisplayName(nameOrModel)
+	return TreasureTranslation.Translate(displayName, localeId)
 end
 
 return TreasureConfig
