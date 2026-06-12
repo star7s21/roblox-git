@@ -362,7 +362,7 @@ local function setupSlot(player, base, slot)
 				sellPrompt.Enabled = (item ~= nil)
 
 				if item then
-					local displayName = item:GetAttribute("DisplayName") or TreasureConfig.GetDisplayName(item.Name)
+					local displayName = TreasureConfig.GetLocalizedDisplayName(item.Name, player)
 					prompt.ObjectText = displayName
 					prompt.ActionText = "Pick Up"
 
@@ -370,7 +370,7 @@ local function setupSlot(player, base, slot)
 					sellPrompt.ObjectText = displayName .. " (" .. formatNumber(sellPrice) .. ")"
 					
 					local config = TreasureConfig.GetRarity(item.Name)
-					local rarityName = config and config.name or item.Name
+					local rarityName = config and TreasureConfig.GetLocalizedRarityName(config.name, player) or item.Name
 
 					local cps, _ = getStats(player, item.Name, level)
 					local statusText = rarityName .. "\n" .. displayName .. "\nLv." .. level .. "\n"
@@ -521,7 +521,7 @@ local function setupSlot(player, base, slot)
 
 				local displayNameValue = Instance.new("StringValue", player)
 				displayNameValue.Name = "TreasureDisplayName"
-				displayNameValue.Value = item:GetAttribute("DisplayName") or item.Name
+				displayNameValue.Value = TreasureConfig.GetLocalizedDisplayName(item.Name, player)
 
 				local hrp = character:FindFirstChild("HumanoidRootPart")
 				if hrp then
@@ -561,7 +561,7 @@ local function setupSlot(player, base, slot)
 				end
 
 				local displayNameValue = player:FindFirstChild("TreasureDisplayName")
-				local dName = displayNameValue and displayNameValue.Value or TreasureConfig.GetDisplayName(typeValue.Value)
+				local dName = displayNameValue and displayNameValue.Value or TreasureConfig.GetLocalizedDisplayName(typeValue.Value, player)
 
 				local levelValue = player:FindFirstChild("TreasureLevel")
 				local tLevel = levelValue and levelValue.Value or 1

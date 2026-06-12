@@ -100,10 +100,13 @@ local function spawnTreasure(position, level)
 		billboard.AlwaysOnTop = true
 		billboard.Parent = treasure.PrimaryPart
 
+		local locRarityName = configModule.GetLocalizedRarityName(rarity.name)
+		local locDisplayName = configModule.GetLocalizedDisplayName(item.model)
+
 		local text = Instance.new("TextLabel")
 		text.Size = UDim2.new(1, 0, 1, 0)
 		text.BackgroundTransparency = 1
-		text.Text = rarity.name .. "\n" .. item.name
+		text.Text = locRarityName .. "\n" .. locDisplayName
 		text.TextColor3 = rarity.color
 		text.TextStrokeTransparency = 0
 		text.TextStrokeColor3 = Color3.new(0,0,0)
