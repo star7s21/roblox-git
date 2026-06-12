@@ -1,0 +1,176 @@
+﻿Key,Example,Source,Context,Game Locations,ja,ja translator type,en-us,en-us translator type,en-gb,en-gb translator type
+,,"Common
+Chair
+Lv.{number1}
++{number2}K/s",,"Workspace.{player1}_Base.Base.ItemArea6.TouchArea.StatusUI.Label","普通
+椅子
+レベル {number1}
++{number2}K/秒","Automation",,,,
+,,"Upgrade Base
+{number1}K Coins",,"Workspace.{player1}_Base.Board.Meshes.UpgradeUI.Label","基地をアップグレードする
+{number1}K コイン","Automation",,,,
+,,"FULL
+{number1}",,"Workspace.{{player1}}_Base.Base.ItemArea7.TouchArea.SurfaceStatusUI.Label","フル
+{number1}","Automation",,,,
+,,"+{number1}B",,"PlayerGui.AdminGui.AdminPanel.Frame.TextButton","+{number1}B","Automation",,,,
+,,"Common
+Chair",,"Workspace.Chair.RootPart.BillboardGui.TextLabel","普通
+椅子","Automation",,,,
+,,"Place",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","場所","Automation",,,,
+,,"Chair ({number1}K)",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","椅子 ({number1}K)","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}Oc)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}Oc)","Automation",,,,
+,,"Level {number1}",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","レベル {number1}","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}Qi)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}Qi)","Automation",,,,
+,,"Dog ({number1}M)",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","犬 ({number1}M)","Automation",,,,
+,,"{number1}M",,"Workspace.{player1}_Base.Base.ItemArea2.TouchArea.SurfaceStatusUI.Label","{number1}百万","Automation",,,,
+,,"Legendary
+Dog",,"Workspace.Dog.Left Leg.BillboardGui.TextLabel","レジェンド
+イヌ","Automation",,,,
+,,"Coins: {number1}B",,"PlayerGui.MenuUI.Frame.CoinText","コイン: {number1}B","Automation",,,,
+,,"Speed",,"PlayerGui.AdminGui.AdminPanel.Frame.TextLabel","速度","Automation",,,,
+,,"Bear ({number1}M)",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","クマ ({number1}M)","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}T)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}T)","Automation",,,,
+,,"❌ Not Enough Coins",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","❌ コインが不足しています ","Automation",,,,
+,,"LEVEL MAX",,"Workspace.{player1}_Base.Board.Meshes.UpgradeUI.Label","レベルマックス","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}Qa)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}Qa)","Automation",,,,
+,,"Dog",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","イヌ","Automation",,,,
+,,"Lv.{number1} -> {number2}
+({number3}M)",,"Workspace.{player1}_Base.Base.ItemArea8.ItemArea.LevelUI.Label",,,,,,
+,,"Common
+Bear
+Lv.{number1}
++{number2}K/s",,"Workspace.{player1}_Base.Base.ItemArea5.TouchArea.StatusUI.Label","普通
+クマ
+レベル {number1}
++{number2}K/秒","Automation",,,,
+,,"Legendary
+Dog
+Lv.{number1}
+FULL!",,"Workspace.{player1}_Base.Base.ItemArea8.TouchArea.StatusUI.Label","レジェンド
+イヌ
+レベル {number1}
+いっぱいです！","Automation",,,,
+,,"Pick Up",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","拾う","Automation",,,,
+,,"DROP",,"PlayerGui.DropUI.Frame.DropButton.Text","手放す","User",,,,
+,,"Jump",,"PlayerGui.AdminGui.AdminPanel.Frame.TextLabel","ジャンプ","Automation",,,,
+,,"BaseLevel",,"PlayerGui.AdminGui.AdminPanel.Frame.TextLabel","ベースレベル","Automation",,,,
+,,"Rebirths",,"PlayerGui.AdminGui.AdminPanel.Frame.TextLabel","再生","Automation",,,,
+,,"Chair",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","椅子","Automation",,,,
+,,"Rare
+{number1}",,"Workspace.67.RootPart.BillboardGui.TextLabel","レア
+{number1}","Automation",,,,
+,,"Epic
+Monster
+Lv.{number1}
+FULL!",,"Workspace.{player1}_Base.Base.ItemArea7.TouchArea.StatusUI.Label","エピック
+怪物
+レベル {number1}
+いっぱいです！","Automation",,,,
+,,"Upgrade Base",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","基地をアップグレードする","Automation",,,,
+,,"Epic
+Monster",,"Workspace.Monster.HumanoidRootPart.BillboardGui.TextLabel","エピック
+怪物","Automation",,,,
+,,"Monster",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","怪物","Automation",,,,
+,,"Bear",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","クマ","Automation",,,,
+,,"Cost: {number1}",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","コスト: {number1}","Automation",,,,
+,,"Speed: {number1}
+Limit: ON",,"PlayerGui.MenuUI.Frame.SpeedButton.Text","スピード：{number1}
+制限：オン","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}M)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}M)","Automation",,,,
+,,"Common
+Chair
+Lv.{number1}
+FULL!",,"Workspace.{player1}_Base.Base.ItemArea4.TouchArea.StatusUI.Label","普通
+椅子
+レベル {number1}
+いっぱいです！","Automation",,,,
+,,"Speed: {number1}
+Limit: OFF",,"PlayerGui.MenuUI.Frame.SpeedButton.Text","スピード：{number1}
+制限：オフ","User",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}Sp)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}Sp)","Automation",,,,
+,,"-{number1}B",,"PlayerGui.AdminGui.AdminPanel.Frame.TextButton","-{number1}B","Automation",,,,
+,,"Upgrade Speed",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","アップグレード速度","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}K)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}K)","Automation",,,,
+,,"Jump: {number1}
+Limit: OFF",,"PlayerGui.MenuUI.Frame.JumpButton.Text","ジャンプ: {number1}
+制限：オフ","Automation",,,,
+,,"Coins",,"PlayerGui.AdminGui.AdminPanel.Frame.TextLabel","コイン","Automation",,,,
+,,"Common
+Chair
+Lv.{number1}
++{number2}/s",,"Workspace.{player1}_Base.Base.ItemArea4.TouchArea.StatusUI.Label","普通
+椅子
+レベル {number1}
++{number2}/秒","Automation",,,,
+,,"Common
+Bear",,"Workspace.Bear.Left Leg.BillboardGui.TextLabel","普通
+クマ","Automation",,,,
+,,"Sell",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","売る","Automation",,,,
+,,"Common
+Bear
+Lv.{number1}
++{number2}/s",,"Workspace.{player1}_Base.Base.ItemArea5.TouchArea.StatusUI.Label","普通
+クマ
+レベル {number1}
++{number2}/秒","Automation",,,,
+,,"Epic
+Monster
+Lv.{number1}
++{number2}K/s",,"Workspace.{player1}_Base.Base.ItemArea1.TouchArea.StatusUI.Label","エピック
+怪物
+レベル {number1}
++{number2}K/秒","Automation",,,,
+,,"Lv.{number1} -> {number2}
+({number3}B)",,"Workspace.{player1}_Base.Base.ItemArea5.ItemArea.LevelUI.Label",,,,,,
+,,"Monster ({number1}M)",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","モンスター ({number1}M)","Automation",,,,
+,,"Button",,"PlayerGui.ProximityPrompts.Prompt.TextButton","ボタン","Automation",,,,
+,,"Upgrade Jump",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","アップグレードジャンプ","Automation",,,,
+,,"AJIKI's Base",,"Workspace.{player1}_Base.OwnerTag.TextLabel","AJIKIの基地","Automation",,,,
+,,"Coins: {number1}",,"PlayerGui.MenuUI.Frame.CoinText","コイン: {number1}","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}Sx)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}Sx)","Automation",,,,
+,,"Common
+Bear
+Lv.{number1}
+FULL!",,"Workspace.{player1}_Base.Base.ItemArea5.TouchArea.StatusUI.Label","普通
+クマ
+レベル {number1}
+いっぱいです！","Automation",,,,
+,,"Legendary
+Dog
+Lv.{number1}
++{number2}K/s",,"Workspace.{player1}_Base.Base.ItemArea8.TouchArea.StatusUI.Label","レジェンド
+イヌ
+レベル {number1}
++{number2}K/秒","Automation",,,,
+,,"{number1}K",,"Workspace.{player1}_Base.Base.ItemArea8.TouchArea.SurfaceStatusUI.Label","{number1}K","Automation",,,,
+,,"⏳ Wait...",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText","⏳ 待って... ","Automation",,,,
+,,"Chair ({number1}M)",,"PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText","椅子 ({number1}M)","Automation",,,,
+,,"Jump: {number1}
+Limit: ON",,"PlayerGui.MenuUI.Frame.JumpButton.Text","ジャンプ: {number1}
+制限：オン","Automation",,,,
+,,"Rare
+{number1}
+Lv.{number2}
++{number3}K/s",,"Workspace.{player1}_Base.Base.ItemArea3.TouchArea.StatusUI.Label","レア
+{number1}
+レベル {number2}
++{number3}K/秒","Automation",,,,
+,,"Rebirths: {number1}
+(Cost: {number2}B)",,"PlayerGui.MenuUI.Frame.RebirthButton.Text","再生数：{number1}
+(コスト: {number2}B)","Automation",,,,
