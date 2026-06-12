@@ -1,3 +1,5 @@
+local TreasureConfig = require(script.Parent.TreasureConfig)
+
 local module = {}
 
 function module.setupTreasure(treasure)
@@ -8,9 +10,12 @@ function module.setupTreasure(treasure)
 	attachment.Name = "PromptAttachment"
 	attachment.Parent = primary
 
+	local modelName = treasure:GetAttribute("Model") or treasure.Name
+	local displayName = TreasureConfig.GetDisplayName(modelName)
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.ActionText = "Pick Up"
-	prompt.ObjectText = treasure:GetAttribute("DisplayName") or treasure:GetAttribute("Model") or treasure.Name
+	prompt.ObjectText = displayName
 	prompt.HoldDuration = 1.0
 	prompt.RequiresLineOfSight = false
 	prompt.MaxActivationDistance = 15
@@ -43,7 +48,7 @@ function module.setupTreasure(treasure)
 
 		local displayNameValue = Instance.new("StringValue")
 		displayNameValue.Name = "TreasureDisplayName"
-		displayNameValue.Value = treasure:GetAttribute("DisplayName") or treasure.Name
+		displayNameValue.Value = TreasureConfig.GetLocalizedDisplayName(treasure:GetAttribute("Model") or treasure.Name, player)
 		displayNameValue.Parent = player
 
 		-- 見た目
