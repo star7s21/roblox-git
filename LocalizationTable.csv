@@ -25,7 +25,7 @@ FULL!",,Workspace.{player1}_Base.Base.ItemArea8.TouchArea.StatusUI.Label,"{text1
 ,,DROP,,PlayerGui.DropUI.Frame.DropButton.Text,手放す,User,,,,
 ,,Empty Slot,,PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ObjectText,空きスロット,User,,,,
 ,,"FULL
-{number1}",,Workspace.{{player1}}_Base.Base.ItemArea7.TouchArea.SurfaceStatusUI.Label,"フル
+{number1}",,Workspace.{{player1}}_Base.Base.ItemArea7.TouchArea.SurfaceStatusUI.Label,"満杯
 {number1}",User,,,,
 ,,Jump,,PlayerGui.AdminGui.AdminPanel.Frame.TextLabel,ジャンプ,User,,,,
 ,,"Jump: {number1}
