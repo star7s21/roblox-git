@@ -95,6 +95,7 @@ jump.Changed:Connect(update)
 rebirths.Changed:Connect(update)
 
 -- 初回およびリスポーン時の同期
+frame.Visible = true
 sendSpeedUpdate()
 sendJumpUpdate()
 update()
