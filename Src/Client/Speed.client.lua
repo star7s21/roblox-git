@@ -8,7 +8,7 @@ local formatNumber = Utils.formatNumber
 local function updatePrompt(prompt)
 	local costValue = player:FindFirstChild("UpgradeCost")
 	local cost = costValue and costValue.Value or 50
-	prompt.ObjectText = "Cost: " .. formatNumber(cost)
+	prompt.ObjectText = "Coins: " .. formatNumber(cost)
 end
 
 ProximityPromptService.PromptShown:Connect(function(prompt)

@@ -36,7 +36,7 @@ local function update()
 	coinText.Text = "Coins: " .. formatNumber(coins.Value)
 	
 	local cost = BASE_REBIRTH_COST * (COST_MULTIPLIER ^ rebirths.Value)
-	rebirthText.Text = "Rebirths: " .. formatNumber(rebirths.Value) .. "\n(Cost: " .. formatNumber(cost) .. ")"
+	rebirthText.Text = "Rebirths: " .. formatNumber(rebirths.Value) .. "\n(Coins: " .. formatNumber(cost) .. ")"
 	
 	if coins.Value >= cost then
 		rebirthButton.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
