@@ -87,13 +87,13 @@ function TreasureConfig.GetDisplayName(nameOrModel)
 end
 
 local function getLocaleId(playerOrLocale)
-	if type(playerOrLocale) == "string" then
+	if type(playerOrLocale) == "string" and playerOrLocale ~= "" then
 		return playerOrLocale
 	elseif typeof(playerOrLocale) == "Instance" and playerOrLocale:IsA("Player") then
 		local success, localeId = pcall(function()
 			return playerOrLocale.LocaleId
 		end)
-		if success then
+		if success and localeId and localeId ~= "" then
 			return localeId
 		end
 	end
@@ -102,7 +102,7 @@ local function getLocaleId(playerOrLocale)
 	local success, localeId = pcall(function()
 		return LocalizationService.RobloxLocaleId
 	end)
-	if success then
+	if success and localeId and localeId ~= "" then
 		return localeId
 	end
 	
