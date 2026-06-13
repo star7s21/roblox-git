@@ -338,7 +338,7 @@ local function setupSlot(player, base, slot)
 		text.Name = "Label"
 		text.Size = UDim2.new(1, 0, 1, 0)
 		text.BackgroundTransparency = 1
-		text.TextColor3 = Color3.new(0,0,0)
+		text.TextColor3 = Color3.new(255,255,255)
 		text.Font = Enum.Font.GothamBold
 		text.TextScaled = true
 		text.Parent = itemSurfaceGui
@@ -379,16 +379,13 @@ local function setupSlot(player, base, slot)
 					if current >= maxCap then
 						statusText = statusText .. "FULL!"
 						coinText = "FULL\n" .. coinText
-						billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
-						surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 0)
 						touchPart.Color = Color3.fromRGB(255, 255, 0)
 					else
 						statusText = statusText .. "+" .. formatNumber(cps) .. "/s"
-						billboard.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-						surfaceGui.Label.TextColor3 = Color3.fromRGB(255, 255, 255)
 						touchPart.Color = Color3.fromRGB(255, 0, 0)
 					end
 					billboard.Label.Text = statusText
+					billboard.Label.TextColor3 = config.color
 
 					if item.PrimaryPart then
 						billboard.Adornee = item.PrimaryPart
