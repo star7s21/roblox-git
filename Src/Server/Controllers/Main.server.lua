@@ -1,6 +1,7 @@
 local RunService = game:GetService("RunService")
 
-local template = workspace:WaitForChild("Wave")
+local ServerStorage = game:GetService("ServerStorage")
+local template = ServerStorage:WaitForChild("Wave")
 
 local MAP_WIDTH = 512
 local HALF_MAP = MAP_WIDTH / 2
