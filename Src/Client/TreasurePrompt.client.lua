@@ -5,24 +5,40 @@ local TreasureTranslation = require(ReplicatedStorage:WaitForChild("Shared"):Wai
 local player = Players.LocalPlayer
 
 local function translateTextLabel(label)
-	if not label:GetAttribute("OriginalText") then
-		label:SetAttribute("OriginalText", label.Text)
+	local currentText = label.Text
+	if currentText == "Label" or currentText == "TextBox" or currentText == "" then
+		return
 	end
-	local origText = label:GetAttribute("OriginalText")
-	if origText and origText ~= "" then
-		local localeId = player.LocaleId
+	
+	if label:GetAttribute("TranslatedText") == currentText then
+		return
+	end
+
+	label:SetAttribute("OriginalText", currentText)
+	local origText = currentText
+	local localeId = player.LocaleId
+	
+	-- 改行区切り（例: お宝名とコイン数表記）に対応するため、行ごとに翻訳する
+	local lines = string.split(origText, "\n")
+	for i, line in ipairs(lines) do
 		-- カッコ付き表示 (例: "Bear (Lvl 1)") に対応
-		local nameOnly, extra = string.match(origText, "^([^(]+)%s*(%(.*%))$")
+		local nameOnly, extra = string.match(line, "^([^(]+)%s*(%(.*%))$")
 		if nameOnly and extra then
-			nameOnly = string.gsub(nameOnly, "^%s*(.-)%s*$", "%1")
-			local transName = TreasureTranslation.Translate(nameOnly, localeId)
-			label.Text = transName .. " " .. extra
+			local cleanName = string.gsub(nameOnly, "^%s*(.-)%s*$", "%1")
+			local transName = TreasureTranslation.Translate(cleanName, localeId)
+			lines[i] = transName .. " " .. extra
 		else
-			-- 前後のスペースを除去して翻訳
-			local cleanText = string.gsub(origText, "^%s*(.-)%s*$", "%1")
-			label.Text = TreasureTranslation.Translate(cleanText, localeId)
+			local cleanText = string.gsub(line, "^%s*(.-)%s*$", "%1")
+			-- 数字、プラス記号、スラッシュなど、数値やシステム表記のみの行は翻訳をスキップ
+			if not string.match(cleanText, "^[%d%+%/s%s]+$") then
+				lines[i] = TreasureTranslation.Translate(cleanText, localeId)
+			end
 		end
 	end
+	local translated = table.concat(lines, "\n")
+
+	label:SetAttribute("TranslatedText", translated)
+	label.Text = translated
 end
 
 local function checkAndTranslateGui(descendant)
