@@ -55,7 +55,7 @@ task.spawn(function()
 
 		if success and pages then
 			local chunk = pages:GetCurrentPage()
-			local displayText = "<font color='#FFD700' size='36'><b>★ COIN RANKING ★</b></font>\n\n"
+			local displayText = "<font color='#FFD700' size='36'><b>★ COIN RANKING ★</b></font>\n"
 
 			for rank, data in ipairs(chunk) do
 				local userId = tonumber(data.key)
@@ -73,11 +73,11 @@ task.spawn(function()
 					end
 				end
 
-				displayText = displayText .. string.format("%d. %s - %s Coins\n", rank, name, formatNumber(score))
+				displayText = displayText .. string.format("\n%d. %s - %s Coins", rank, name, formatNumber(score))
 			end
 
 			if #chunk == 0 then
-				displayText = displayText .. "No ranking data yet."
+				displayText = displayText .. "\nNo ranking data yet."
 			end
 
 			textLabel.Text = displayText
