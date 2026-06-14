@@ -362,16 +362,15 @@ local function setupSlot(player, base, slot)
 				sellPrompt.Enabled = (item ~= nil)
 
 				if item then
-					local rawDisplayName = TreasureConfig.GetDisplayName(item.Name)
-					prompt.ObjectText = rawDisplayName
-					prompt.ActionText = "Pick Up"
-
-					local sellPrice = getSellPrice(item.Name, level)
-					sellPrompt.ObjectText = rawDisplayName .. " (" .. formatNumber(sellPrice) .. ")"
-					
 					local config = TreasureConfig.GetRarity(item.Name)
 					local displayName = TreasureConfig.GetLocalizedDisplayName(item.Name, player)
 					local rarityName = config and TreasureConfig.GetLocalizedRarityName(config.name, player) or item.Name
+
+					prompt.ObjectText = displayName
+					prompt.ActionText = "Pick Up"
+
+					local sellPrice = getSellPrice(item.Name, level)
+					sellPrompt.ObjectText = displayName .. " (" .. formatNumber(sellPrice) .. ")"
 
 					local cps, _ = getStats(player, item.Name, level)
 					local statusText = rarityName .. "\n" .. displayName .. "\nLv." .. level .. "\n"
