@@ -40,8 +40,8 @@ task.spawn(function()
 		textLabel.Size = UDim2.new(1, 0, 1, 0)
 		textLabel.BackgroundTransparency = 1
 		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		textLabel.TextSize = 40
-		textLabel.Font = Enum.Font.SourceSansBold
+		textLabel.TextSize = 32
+		textLabel.Font = Enum.Font.Code
 		textLabel.TextXAlignment = Enum.TextXAlignment.Center
 		textLabel.TextYAlignment = Enum.TextYAlignment.Top
 		textLabel.RichText = true
@@ -73,7 +73,9 @@ task.spawn(function()
 					end
 				end
 
-				displayText = displayText .. string.format("\n%d. %s - %s Coins", rank, name, formatNumber(score))
+				-- 等幅フォントで綺麗に揃えるため、名前を最大15文字に制限し、各カラムの幅を固定します
+				local displayName = string.sub(name, 1, 15)
+				displayText = displayText .. string.format("\n%2d. %-15s - %10s Coins", rank, displayName, formatNumber(score))
 			end
 
 			if #chunk == 0 then
