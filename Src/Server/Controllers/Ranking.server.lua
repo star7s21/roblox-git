@@ -41,7 +41,7 @@ task.spawn(function()
 		textLabel.BackgroundTransparency = 1
 		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		textLabel.TextSize = 32
-		textLabel.Font = Enum.Font.Code
+		textLabel.Font = Enum.Font.RobotoMono
 		textLabel.TextXAlignment = Enum.TextXAlignment.Left
 		textLabel.TextYAlignment = Enum.TextYAlignment.Top
 		textLabel.RichText = true
@@ -76,7 +76,7 @@ task.spawn(function()
 
 				-- 等幅フォントで綺麗に揃えるため、名前を最大15文字に制限し、各カラムの幅を固定します
 				local displayName = string.sub(name, 1, 15)
-				displayText = displayText .. string.format("\n       %2d. %-15s - %10s Coins", rank, displayName, formatNumber(score))
+				displayText = displayText .. string.format("\n       %02d. %-15s - %10s Coins", rank, displayName, formatNumber(score))
 			end
 
 			if #chunk == 0 then
