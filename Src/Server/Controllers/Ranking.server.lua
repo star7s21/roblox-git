@@ -3,24 +3,34 @@ local DataStoreService = game:GetService("DataStoreService")
 
 local coinRankingStore = DataStoreService:GetOrderedDataStore("CoinRankingStore_v1")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
+local formatNumber = Utils.formatNumber
+
 -- =========================
 -- ランキング表示処理（RankingCoin）
 -- =========================
 task.spawn(function()
-	local rankingCoin = workspace:WaitForChild("RankingCoin", 10)
-	if not rankingCoin then
-		warn("RankingCoin not found in Workspace")
+	local rankingModel = workspace:WaitForChild("RankingCoin", 10)
+	if not rankingModel then
+		warn("RankingCoin model not found")
+		return
+	end
+	local scoreBlock = rankingModel:WaitForChild("ScoreBlock", 10)
+	if not scoreBlock then
+		warn("ScoreBlock not found in RankingCoin")
 		return
 	end
 
 	-- SurfaceGui のセットアップ
-	local surfaceGui = rankingCoin:FindFirstChild("RankingGui")
+	local surfaceGui = scoreBlock:FindFirstChild("RankingGui")
 	if not surfaceGui then
 		surfaceGui = Instance.new("SurfaceGui")
 		surfaceGui.Name = "RankingGui"
-		surfaceGui.Face = Enum.NormalId.Front -- 前面に表示
+		surfaceGui.Face = Enum.NormalId.Front
 		surfaceGui.CanvasSize = Vector2.new(800, 600)
-		surfaceGui.Parent = rankingCoin
+		surfaceGui.Adornee = scoreBlock
+		surfaceGui.Parent = scoreBlock
 	end
 
 	local textLabel = surfaceGui:FindFirstChild("RankingText")
@@ -30,10 +40,10 @@ task.spawn(function()
 		textLabel.Size = UDim2.new(1, 0, 1, 0)
 		textLabel.BackgroundTransparency = 1
 		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-		textLabel.TextSize = 24
+		textLabel.TextSize = 40
 		textLabel.Font = Enum.Font.SourceSansBold
 		textLabel.TextXAlignment = Enum.TextXAlignment.Center
-		textLabel.TextYAlignment = Enum.TextYAlignment.Center
+		textLabel.TextYAlignment = Enum.TextYAlignment.Top
 		textLabel.RichText = true
 		textLabel.Parent = surfaceGui
 	end
@@ -63,7 +73,7 @@ task.spawn(function()
 					end
 				end
 
-				displayText = displayText .. string.format("%d. %s - %s Coins\n", rank, name, tostring(score))
+				displayText = displayText .. string.format("%d. %s - %s Coins\n", rank, name, formatNumber(score))
 			end
 
 			if #chunk == 0 then
