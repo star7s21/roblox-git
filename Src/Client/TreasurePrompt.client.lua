@@ -61,6 +61,12 @@ end
 workspace.DescendantAdded:Connect(checkAndTranslateGui)
 
 local function checkPrompt(prompt)
+	local ownerUserId = prompt:GetAttribute("OwnerUserId")
+	if ownerUserId and ownerUserId ~= player.UserId then
+		prompt.Enabled = false
+		return
+	end
+
 	if not prompt:GetAttribute("OriginalActionText") then
 		prompt:SetAttribute("OriginalActionText", prompt.ActionText)
 	end

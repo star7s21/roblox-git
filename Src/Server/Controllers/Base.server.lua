@@ -198,6 +198,7 @@ local function setupSlot(player, base, slot)
 		prompt.MaxActivationDistance = 20
 		prompt.Parent = attachment
 	end
+	prompt:SetAttribute("OwnerUserId", player.UserId)
 
 	local sellPrompt = sellAttachment:FindFirstChild("SellPrompt")
 	if not sellPrompt then
@@ -210,6 +211,7 @@ local function setupSlot(player, base, slot)
 		sellPrompt.MaxActivationDistance = 20
 		sellPrompt.Parent = sellAttachment
 	end
+	sellPrompt:SetAttribute("OwnerUserId", player.UserId)
 
 	prompt.HoldDuration = 0
 
@@ -653,6 +655,7 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 	prompt.ActionText = "Upgrade Base"
 	prompt.KeyboardKeyCode = Enum.KeyCode.G
 	prompt.Parent = displayPart
+	prompt:SetAttribute("OwnerUserId", player.UserId)
 
 	local gui = board:FindFirstChild("UpgradeUI")
 	if not gui then
