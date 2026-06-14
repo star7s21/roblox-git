@@ -42,7 +42,7 @@ task.spawn(function()
 		textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 		textLabel.TextSize = 32
 		textLabel.Font = Enum.Font.RobotoMono
-		textLabel.TextXAlignment = Enum.TextXAlignment.Left
+		textLabel.TextXAlignment = Enum.TextXAlignment.Center
 		textLabel.TextYAlignment = Enum.TextYAlignment.Top
 		textLabel.RichText = true
 		textLabel.Parent = surfaceGui
@@ -55,8 +55,7 @@ task.spawn(function()
 
 		if success and pages then
 			local chunk = pages:GetCurrentPage()
-			-- 左寄せにしたため、タイトルとリスト全体の配置をスペースで中央付近に微調整します
-			local displayText = "        <font color='#FFD700' size='36'><b>★ COIN RANKING ★</b></font>\n"
+			local displayText = "<font color='#FFD700' size='36'><b>★ COIN RANKING ★</b></font>\n"
 
 			for rank, data in ipairs(chunk) do
 				local userId = tonumber(data.key)
@@ -74,9 +73,10 @@ task.spawn(function()
 					end
 				end
 
-				-- 等幅フォントで綺麗に揃えるため、名前を最大15文字に制限し、各カラムの幅を固定します
+				-- 等幅フォント（RobotoMono）を使用し、各行の文字数を完全に統一することで、
+				-- 中央揃え（Center）にしても縦のライン（インデント）が完璧に揃うようにします。
 				local displayName = string.sub(name, 1, 15)
-				displayText = displayText .. string.format("\n       %02d. %-15s - %10s Coins", rank, displayName, formatNumber(score))
+				displayText = displayText .. string.format("\n%02d. %-15s - %10s Coins", rank, displayName, formatNumber(score))
 			end
 
 			if #chunk == 0 then
