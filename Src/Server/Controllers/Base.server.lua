@@ -6,6 +6,8 @@ local TeleportService = game:GetService("TeleportService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local TreasureConfig = require(ServerScriptService.Server.Services.TreasureConfig)
 local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
+local SlotManager = require(ServerScriptService.Server.Services.SlotManager)
+local BaseUpgradeService = require(ServerScriptService.Server.Services.BaseUpgradeService)
 local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
 local formatNumber = Utils.formatNumber
 
@@ -16,11 +18,6 @@ local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
 -- =========================
 -- スロット管理
 -- =========================
-local SPACING = 70
-local MAX_SLOTS = 7
-local MAX_BASE_LEVEL = 4
-
-local used = {}
 local speedConnections = {}
 local jumpConnections = {}
 local playerBases = {}
@@ -46,31 +43,6 @@ MarketplaceManager.RegisterUpgrade("Base", function(player, extraData)
 	end
 end)
 
-local function assignSlot(player)
-	for i = 1, MAX_SLOTS do
-		if not used[i] then
-			used[i] = player.UserId
-
-			local offsetIndex = i - 1
-			local direction = (offsetIndex % 2 == 0) and 1 or -1
-			local step = math.ceil(offsetIndex / 2)
-
-			local x = step * SPACING * direction
-			return Vector3.new(x, 7.5, 0), i
-		end
-	end
-
-	warn("Server full!")
-	return nil, nil
-end
-
-local function releaseSlot(player)
-	for i, id in pairs(used) do
-		if id == player.UserId then
-			used[i] = nil
-		end
-	end
-end
 
 -- =========================
 -- 状態リセット
@@ -113,10 +85,6 @@ end
 
 local function getUpgradeCost(level)
 	return math.floor(100 * (1.8 ^ (level - 1)))
-end
-
-local function getBaseUpgradeCost(level)
-	return math.floor(10000 * (4 ^ (level - 1)))
 end
 
 local function getSellPrice(typeName, level)
@@ -595,57 +563,6 @@ local function setupSlot(player, base, slot)
 	end)
 end
 
-local function setVisible(obj, visible)
-	if not obj then return end
-	if obj:IsA("BasePart") then
-		obj.Transparency = visible and 0 or 1
-		obj.CanCollide = visible
-		obj.CanQuery = visible
-		obj.CanTouch = visible
-	elseif obj:IsA("Model") then
-		for _, child in ipairs(obj:GetDescendants()) do
-			if child:IsA("BasePart") then
-				child.Transparency = visible and 0 or 1
-				child.CanCollide = visible
-				child.CanQuery = visible
-				child.CanTouch = visible
-			elseif child:IsA("ProximityPrompt") then
-				if not visible then
-					child.Enabled = false
-				end
-			elseif child:IsA("LayerCollector") then -- BillboardGui, SurfaceGui
-				child.Enabled = visible
-			end
-		end
-	end
-end
-
-local function refreshBaseVisibility(base)
-	local currentLevel = base:GetAttribute("BaseLevel") or 1
-	
-	local function updateFloorVisibility(floor, floorNum)
-		local board = floor:FindFirstChild("Board")
-		local stair = floor:FindFirstChild("Stair")
-		
-		-- Stair: 現在の階より上の階が存在する場合のみ表示
-		setVisible(stair, floorNum < currentLevel)
-		
-		-- Board: 1階は常に表示
-		local boardVisible = (floorNum == 1)
-		setVisible(board, boardVisible)
-	end
-
-	-- 初期階
-	updateFloorVisibility(base, 1)
-
-	-- 追加階
-	for i = 2, MAX_BASE_LEVEL do
-		local floor = base:FindFirstChild("Floor" .. i)
-		if floor then
-			updateFloorVisibility(floor, i)
-		end
-	end
-end
 
 local function setupBoardUpgrade(player, base, board, floorLevel)
 	local displayPart = board.PrimaryPart or board:FindFirstChildWhichIsA("BasePart")
@@ -684,11 +601,11 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 			return
 		end
 
-		if level >= MAX_BASE_LEVEL then
+		if level >= BaseUpgradeService.MAX_BASE_LEVEL then
 			prompt.Enabled = false
 			gui.Label.Text = "LEVEL MAX"
 		else
-			local cost = getBaseUpgradeCost(level + 1)
+			local cost = BaseUpgradeService.getBaseUpgradeCost(level + 1)
 			prompt.ObjectText = "Level " .. (level + 1)
 			gui.Label.Text = "Upgrade Base\n" .. formatNumber(cost) .. " Coins"
 			prompt.Enabled = true
@@ -701,9 +618,9 @@ local function setupBoardUpgrade(player, base, board, floorLevel)
 	prompt.Triggered:Connect(function(triggerPlayer)
 		if triggerPlayer ~= player then return end
 		local level = base:GetAttribute("BaseLevel") or 1
-		if level >= MAX_BASE_LEVEL then return end
+		if level >= BaseUpgradeService.MAX_BASE_LEVEL then return end
 
-		local cost = getBaseUpgradeCost(level + 1)
+		local cost = BaseUpgradeService.getBaseUpgradeCost(level + 1)
 		local leaderstats = player:FindFirstChild("leaderstats")
 		local coins = leaderstats and leaderstats:FindFirstChild("Coins")
 
@@ -758,7 +675,7 @@ local function syncBaseLevel(player, base, targetLevel)
 			setupFloor(player, base, newFloor, nextLevel)
 			base:SetAttribute("BaseLevel", nextLevel)
 
-			-- オーナー名タグを最新の階の頂上へ移動
+			-- オーナー名タグを最新 of 階の頂上へ移動
 			local ownerTag = base:FindFirstChild("OwnerTag")
 			if ownerTag then
 				ownerTag.Adornee = newFloor.PrimaryPart or newFloor:FindFirstChildWhichIsA("BasePart")
@@ -794,7 +711,7 @@ local function syncBaseLevel(player, base, targetLevel)
 			ownerTag.Adornee = topFloor.PrimaryPart or topFloor:FindFirstChildWhichIsA("BasePart")
 		end
 	end
-	refreshBaseVisibility(base)
+	BaseUpgradeService.refreshBaseVisibility(base)
 end
 
 -- =========================
@@ -805,7 +722,7 @@ local function createBase(player)
 	local old = workspace:FindFirstChild(player.Name .. "_Base")
 	if old then old:Destroy() end
 
-	local pos, slotIndex = assignSlot(player)
+	local pos, slotIndex = SlotManager.assignSlot(player)
 
 	if not pos then
 		local success, result = pcall(function()
@@ -851,7 +768,7 @@ local function createBase(player)
 	label.TextScaled = true
 	label.Parent = billboard
 
-	refreshBaseVisibility(base)
+	BaseUpgradeService.refreshBaseVisibility(base)
 
 	return base
 end
@@ -913,7 +830,7 @@ end
 
 Players.PlayerRemoving:Connect(function(player)
 
-	releaseSlot(player)
+	SlotManager.releaseSlot(player)
 	playerBases[player] = nil
 
 	if speedConnections[player] then
