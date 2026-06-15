@@ -473,49 +473,62 @@ local function setupSlot(player, base, slot)
 			-- 回収
 			if stored and stored.Value and not hasTreasure then
 				local item = stored.Value
+				local itemName = item.Name
 				local level = placePart:GetAttribute("Level") or 1
 				clearTreasure(player, character)
 
-				Instance.new("BoolValue", player).Name = "HasTreasure"
+				local hasTreasureVal = Instance.new("BoolValue")
+				hasTreasureVal.Name = "HasTreasure"
+				hasTreasureVal.Parent = player
 
-				local levelValue = Instance.new("IntValue", player)
+				local levelValue = Instance.new("IntValue")
 				levelValue.Name = "TreasureLevel"
 				levelValue.Value = level
+				levelValue.Parent = player
 
-				local typeValue = Instance.new("StringValue", player)
+				local typeValue = Instance.new("StringValue")
 				typeValue.Name = "TreasureType"
-				typeValue.Value = item.Name
+				typeValue.Value = itemName
+				typeValue.Parent = player
 
-				local displayNameValue = Instance.new("StringValue", player)
+				local displayNameValue = Instance.new("StringValue")
 				displayNameValue.Name = "TreasureDisplayName"
-				displayNameValue.Value = TreasureConfig.GetLocalizedDisplayName(item.Name, player)
+				displayNameValue.Value = TreasureConfig.GetLocalizedDisplayName(itemName, player)
+				displayNameValue.Parent = player
 
-				local hrp = character:FindFirstChild("HumanoidRootPart")
-				if hrp then
-					local template = treasureFolder:FindFirstChild(item.Name)
-					if template then
-						local clone = template:Clone()
-						clone.Name = "CarriedTreasure"
-						clone.Parent = character
-						for _, p in ipairs(clone:GetDescendants()) do
-							if p:IsA("BasePart") then
-								p.Anchored = false
-								p.CanCollide = false
-								p.Massless = true
-							end
-						end
-						clone.PrimaryPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
-						if clone.PrimaryPart then
-							clone:PivotTo(hrp.CFrame * CFrame.new(0,2,-2))
-							local weld = Instance.new("WeldConstraint")
-							weld.Part0 = clone.PrimaryPart
-							weld.Part1 = hrp
-							weld.Parent = clone.PrimaryPart
-						end
-					end
-				end
+				-- スロット側を先に確実に破壊して不整合を防ぐ
 				item:Destroy()
 				if stored then stored:Destroy() end
+
+				-- キャラクターへのビジュアル適用（エラーが起きやすいため安全に実行）
+				pcall(function()
+					if character and character.Parent then
+						local hrp = character:FindFirstChild("HumanoidRootPart")
+						if hrp then
+							local template = treasureFolder:FindFirstChild(itemName)
+							if template then
+								local clone = template:Clone()
+								clone.Name = "CarriedTreasure"
+								clone.Parent = character
+								for _, p in ipairs(clone:GetDescendants()) do
+									if p:IsA("BasePart") then
+										p.Anchored = false
+										p.CanCollide = false
+										p.Massless = true
+									end
+								end
+								clone.PrimaryPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+								if clone.PrimaryPart then
+									clone:PivotTo(hrp.CFrame * CFrame.new(0,2,-2))
+									local weld = Instance.new("WeldConstraint")
+									weld.Part0 = clone.PrimaryPart
+									weld.Part1 = hrp
+									weld.Parent = clone.PrimaryPart
+								end
+							end
+						end
+					end
+				end)
 
 			-- 設置
 			elseif hasTreasure and (not stored or not stored.Value) then
@@ -550,9 +563,10 @@ local function setupSlot(player, base, slot)
 					item:MoveTo((placePart.CFrame * CFrame.new(0, yOffset, 0)).Position)
 				end
 
-				local storedItem = Instance.new("ObjectValue", placePart)
+				local storedItem = Instance.new("ObjectValue")
 				storedItem.Name = "StoredItem"
 				storedItem.Value = item
+				storedItem.Parent = placePart
 
 				clearTreasure(player, character)
 			end
