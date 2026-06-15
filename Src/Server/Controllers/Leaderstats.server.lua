@@ -296,3 +296,21 @@ game:BindToClose(function()
 	end
 	task.wait(5)
 end)
+
+-- =========================
+-- 定期的にコインランキング用データストアを更新（60秒毎）
+-- =========================
+task.spawn(function()
+	while true do
+		task.wait(60)
+		for _, player in ipairs(Players:GetPlayers()) do
+			local leaderstats = player:FindFirstChild("leaderstats")
+			local coins = leaderstats and leaderstats:FindFirstChild("Coins")
+			if coins then
+				pcall(function()
+					coinRankingStore:SetAsync(tostring(player.UserId), coins.Value)
+				end)
+			end
+		end
+	end
+end)
