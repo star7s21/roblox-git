@@ -328,8 +328,29 @@ local function setupSlot(player, base, slot)
 				local canPickup = item ~= nil and not hasTreasure
 				local canPlace = hasTreasure and not item
 
-				prompt.Enabled = canPickup or canPlace
-				sellPrompt.Enabled = (item ~= nil)
+				local targetEnabled = canPickup or canPlace
+				if targetEnabled and not prompt.Enabled then
+					prompt.Enabled = false
+					task.defer(function()
+						if prompt.Parent then
+							prompt.Enabled = true
+						end
+					end)
+				elseif not targetEnabled then
+					prompt.Enabled = false
+				end
+
+				local targetSellEnabled = (item ~= nil)
+				if targetSellEnabled and not sellPrompt.Enabled then
+					sellPrompt.Enabled = false
+					task.defer(function()
+						if sellPrompt.Parent then
+							sellPrompt.Enabled = true
+						end
+					end)
+				elseif not targetSellEnabled then
+					sellPrompt.Enabled = false
+				end
 
 				if item then
 					local config = TreasureConfig.GetRarity(item.Name)
@@ -383,7 +404,6 @@ local function setupSlot(player, base, slot)
 				itemSurfaceGui.Enabled = false
 				clickDetector.MaxActivationDistance = 32
 			else
-				prompt.Enabled = false
 				touchPart.Color = Color3.fromRGB(255, 0, 0)
 				billboard.Adornee = touchPart
 				billboard.Enabled = false
