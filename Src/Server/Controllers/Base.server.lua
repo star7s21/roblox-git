@@ -180,8 +180,11 @@ local function setupSlot(player, base, slot)
 		sellPrompt.Parent = sellAttachment
 	end
 	sellPrompt:SetAttribute("OwnerUserId", player.UserId)
+	sellPrompt.Enabled = false
 
 	prompt.HoldDuration = 0
+	prompt.Enabled = false
+	prompt:SetAttribute("LastState", "none")
 
 	local clickDetector = placePart:FindFirstChildOfClass("ClickDetector")
 	if not clickDetector then
@@ -328,14 +331,14 @@ local function setupSlot(player, base, slot)
 				local canPickup = item ~= nil and not hasTreasure
 				local canPlace = hasTreasure and not item
 
-				local lastState = prompt:GetAttribute("LastState")
+				local lastState = prompt:GetAttribute("LastState") or "none"
 				local currentState = canPickup and "pickup" or (canPlace and "place" or "none")
 
 				if currentState ~= lastState then
 					prompt:SetAttribute("LastState", currentState)
 					prompt.Enabled = false
 					if currentState ~= "none" then
-						task.defer(function()
+						task.delay(0.1, function()
 							if prompt.Parent then
 								prompt.Enabled = true
 							end
@@ -346,7 +349,7 @@ local function setupSlot(player, base, slot)
 				local targetSellEnabled = (item ~= nil)
 				if targetSellEnabled and not sellPrompt.Enabled then
 					sellPrompt.Enabled = false
-					task.defer(function()
+					task.delay(0.1, function()
 						if sellPrompt.Parent then
 							sellPrompt.Enabled = true
 						end
