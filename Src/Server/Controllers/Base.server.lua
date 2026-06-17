@@ -328,16 +328,19 @@ local function setupSlot(player, base, slot)
 				local canPickup = item ~= nil and not hasTreasure
 				local canPlace = hasTreasure and not item
 
-				local targetEnabled = canPickup or canPlace
-				if targetEnabled and not prompt.Enabled then
+				local lastState = prompt:GetAttribute("LastState")
+				local currentState = canPickup and "pickup" or (canPlace and "place" or "none")
+
+				if currentState ~= lastState then
+					prompt:SetAttribute("LastState", currentState)
 					prompt.Enabled = false
-					task.defer(function()
-						if prompt.Parent then
-							prompt.Enabled = true
-						end
-					end)
-				elseif not targetEnabled then
-					prompt.Enabled = false
+					if currentState ~= "none" then
+						task.defer(function()
+							if prompt.Parent then
+								prompt.Enabled = true
+							end
+						end)
+					end
 				end
 
 				local targetSellEnabled = (item ~= nil)
