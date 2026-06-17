@@ -339,7 +339,9 @@ local function setupSlot(player, base, slot)
 					prompt.Enabled = false
 					if currentState ~= "none" then
 						task.delay(0.1, function()
-							if prompt.Parent then
+							if attachment then
+								prompt.Parent = nil
+								prompt.Parent = attachment
 								prompt.Enabled = true
 							end
 						end)
@@ -350,7 +352,9 @@ local function setupSlot(player, base, slot)
 				if targetSellEnabled and not sellPrompt.Enabled then
 					sellPrompt.Enabled = false
 					task.delay(0.1, function()
-						if sellPrompt.Parent then
+						if sellAttachment then
+							sellPrompt.Parent = nil
+							sellPrompt.Parent = sellAttachment
 							sellPrompt.Enabled = true
 						end
 					end)
