@@ -151,6 +151,14 @@ Players.PlayerAdded:Connect(function(player)
 	carryCost.Name = "CarryCost"
 	carryCost.Value = 500
 
+	local carryLevel = Instance.new("IntValue", player)
+	carryLevel.Name = "CarryLevel"
+	carryLevel.Value = 1
+
+	local carryCost = Instance.new("IntValue", player)
+	carryCost.Name = "CarryCost"
+	carryCost.Value = 500
+
 	-- =========================
 	-- LOAD
 	-- =========================
