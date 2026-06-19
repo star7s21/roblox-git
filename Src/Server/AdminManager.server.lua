@@ -40,6 +40,16 @@ local STAT_LIMITS = {
 	BaseLevel = {
 		min = 1,
 		max = 4
+	},
+
+	CarryLevel = {
+		min = 1,
+		max = 5
+	},
+
+	CarryCost = {
+		min = 0,
+		max = 999999999999999999
 	}
 }
 

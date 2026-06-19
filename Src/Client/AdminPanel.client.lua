@@ -88,6 +88,8 @@ createStatControl("Rebirths", "Rebirths", 10)
 createStatControl("Speed", "Speed", 20)
 createStatControl("Jump", "Jump", 20)
 createStatControl("BaseLevel", "BaseLevel", 1)
+createStatControl("Carry Level", "CarryLevel", 1)
+createStatControl("Carry Cost", "CarryCost", 1000)
 
 -- 表示切り替え
 gearButton.MouseButton1Click:Connect(function()
