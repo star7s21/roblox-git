@@ -147,18 +147,6 @@ Players.PlayerAdded:Connect(function(player)
 	carryLevel.Name = "CarryLevel"
 	carryLevel.Value = 1
 
-	local carryCost = Instance.new("IntValue", player)
-	carryCost.Name = "CarryCost"
-	carryCost.Value = 500
-
-	local carryLevel = Instance.new("IntValue", player)
-	carryLevel.Name = "CarryLevel"
-	carryLevel.Value = 1
-
-	local carryCost = Instance.new("IntValue", player)
-	carryCost.Name = "CarryCost"
-	carryCost.Value = 500
-
 	-- =========================
 	-- LOAD
 	-- =========================
@@ -199,6 +187,7 @@ Players.PlayerAdded:Connect(function(player)
 
 		upgradeCost.Value = data.UpgradeCost or 50
 		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
+		carryLevel.Value = data.CarryLevel or 1
 	end
 
 	player:SetAttribute("DataLoaded", true)
@@ -264,6 +253,7 @@ local function save(player)
 
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 500,
+		CarryLevel = player:FindFirstChild("CarryLevel") and player.CarryLevel.Value or 1,
 
 		BaseItems = base and collectBaseData(base) or {}
 	}

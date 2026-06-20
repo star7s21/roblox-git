@@ -14,6 +14,7 @@ local ALLOWED_STATS = {
 	Speed = true,
 	Jump = true,
 	BaseLevel = true,
+	CarryLevel = true,
 }
 
 local STAT_LIMITS = {
@@ -45,11 +46,6 @@ local STAT_LIMITS = {
 	CarryLevel = {
 		min = 1,
 		max = 5
-	},
-
-	CarryCost = {
-		min = 0,
-		max = 999999999999999999
 	}
 }
 
