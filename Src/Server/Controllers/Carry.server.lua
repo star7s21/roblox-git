@@ -1,5 +1,4 @@
 local MAX_CARRY_LEVEL = 5
-local CARRY_SLOT_HEIGHT = 40 -- UIの各スロットの高さ
 local carryLevelIncrease = 1
 local carryDebounce = {}
 
@@ -8,7 +7,10 @@ local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 
--- CarryStorageのルートフォルダ設定（サーバー側でのみ安全に保持するためServerStorageを使用）
+-- CarryConfig をロード
+local CarryConfig = require(script.Parent.Services.CarryConfig) -- パスは環境に合わせて調整してください
+
+-- CarryStorageのルートフォルダ設定
 local carryStorageRoot = ServerStorage:FindFirstChild("CarryStorage")
 if not carryStorageRoot then
 	carryStorageRoot = Instance.new("Folder")
@@ -17,122 +19,31 @@ if not carryStorageRoot then
 end
 
 -- 通信用RemoteEventの設定
-local carryRemote = ReplicatedStorage:FindFirstChild("CarryRemote")
-if not carryRemote then
-	carryRemote = Instance.new("RemoteEvent")
-	carryRemote.Name = "CarryRemote"
-	carryRemote.Parent = ReplicatedStorage
+local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
+
+-- プレイヤーのCarryLevelに応じたUI更新処理
+local function updateClientCarryUI(player)
+	carryRemote:FireClient(player, "UpdateUI")
 end
 
-local function applyCarryLevel(player, char)
-	-- UIの表示・更新処理はクライアント側（Carry.client.lua）で行われるため、サーバー側でのUI操作は行いません。
-end
-
-local function addCarrySlot(player, char)
-	if not char then return end
-	local carryLevel = player:FindFirstChild("CarryLevel")
-	if not carryLevel then return end
-
-	local newLevel = carryLevel.Value + carryLevelIncrease
-	if newLevel <= MAX_CARRY_LEVEL then
-		carryLevel.Value = newLevel
+-- プレイヤーのCarryLevelとスロットを初期化
+local function initializePlayerCarry(player)
+	-- CarryLevel属性が存在しない場合は作成
+	if not player:GetAttribute("CarryLevel") then
+		player:SetAttribute("CarryLevel", 1)
 	end
-end
 
--- プレイヤーごとの格納用フォルダとスロットデータの初期化
-local function initializePlayerSlots(player)
-	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
+	-- CarryStorageフォルダを作成
+	local carryStorage = player:FindFirstChild("CarryStorage")
 	if not carryStorage then
 		carryStorage = Instance.new("Folder")
-		carryStorage.Name = player.Name
-		carryStorage.Parent = carryStorageRoot
-	end
-
-	local carrySlots = player:FindFirstChild("CarrySlots")
-	if not carrySlots then
-		carrySlots = Instance.new("Folder")
-		carrySlots.Name = "CarrySlots"
-		carrySlots.Parent = player
-	end
-
-	for i = 1, MAX_CARRY_LEVEL do
-		local slotName = "Slot" .. i
-		
-		-- 各スロット専用の実体格納用フォルダを作成
-		local slotFolder = carryStorage:FindFirstChild(slotName)
-		if not slotFolder then
-			slotFolder = Instance.new("Folder")
-			slotFolder.Name = slotName
-			slotFolder.Parent = carryStorage
-		end
-
-		-- スロットをStringValueとして初期化（ツールの名前を保持する）
-		local slotVal = carrySlots:FindFirstChild(slotName)
-		if not slotVal then
-			slotVal = Instance.new("StringValue")
-			slotVal.Name = slotName
-			slotVal.Value = ""
-			slotVal.Parent = carrySlots
-		end
+		carryStorage.Name = "CarryStorage"
+		carryStorage.Parent = player
 	end
 end
 
-Players.PlayerAdded:Connect(initializePlayerSlots)
-for _, player in ipairs(Players:GetPlayers()) do
-	initializePlayerSlots(player)
-end
-
--- スロットタップ時の格納・回収イベントハンドリング
-carryRemote.OnServerEvent:Connect(function(player, slotIndex, action)
-	local carryLevel = player:FindFirstChild("CarryLevel")
-	if not carryLevel then return end
-
-	-- スロット数は「レベル - 1」個、最大4個
-	local maxSlots = math.min(carryLevel.Value - 1, 4)
-	if slotIndex > maxSlots or slotIndex < 1 then return end
-
-	local carrySlots = player:FindFirstChild("CarrySlots")
-	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
-	if not carrySlots or not carryStorage then return end
-
-	local slotVal = carrySlots:FindFirstChild("Slot" .. slotIndex)
-	if not slotVal then return end
-
-	local char = player.Character
-	if not char then return end
-
-	if action == "Store" then
-		local currentTool = char:FindFirstChildOfClass("Tool")
-		if currentTool and slotVal.Value == "" then -- 現在手に持っていて、スロットが空の場合
-			local toolName = currentTool.Name
-			slotVal.Value = toolName -- Toolの名前を保持
-
-			-- Toolをサーバー側で保持する場所（ServerStorage内のプレイヤーごとのフォルダ）に移動
-			-- toolFromStorage = carryStorage:FindFirstChild(storedToolName) のような既存の処理があるので、
-			-- ここでは実際にServerStorageに移動するのではなく、Instanceを直接操作できるようにする
-			local toolToStore = currentTool
-			toolToStore.Parent = carryStorage -- ServerStorage内のプレイヤーフォルダに移動
-
-			carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, toolName) -- クライアントにスロットUI更新を通知
-		end
-	elseif action == "Retrieve" then
-		local storedToolName = slotVal.Value
-		if storedToolName ~= "" then
-			-- ServerStorageからツールを探す
-			local toolFromStorage = carryStorage:FindFirstChild(storedToolName)
-			if toolFromStorage then
-				-- CharacterにToolを移動して装備させる
-				toolFromStorage.Parent = char
-				slotVal.Value = "" -- スロットを空にする
-				carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, "") -- クライアントにスロットUI更新を通知
-			end
-		end
-	end
-end)
-
--- CarryUpgrade PadのProximityPrompt設定
-task.spawn(function()
-	-- WorkspaceにCarryUpgradeが存在しない場合は動的に作成する
+-- CarryUpgrade Pad の処理
+local function setupCarryUpgradePad()
 	local carryUpgradePad = workspace:FindFirstChild("CarryUpgrade")
 	if not carryUpgradePad then
 		carryUpgradePad = Instance.new("Part")
@@ -157,10 +68,9 @@ task.spawn(function()
 	carryPrompt.Triggered:Connect(function(player)
 		if carryDebounce[player] then return end
 
-		local carryLevel = player:FindFirstChild("CarryLevel")
-		if not carryLevel then return end
+		local currentCarryLevel = player:GetAttribute("CarryLevel") or 1
 
-		if carryLevel.Value >= MAX_CARRY_LEVEL then
+		if currentCarryLevel >= CarryConfig.MaxCarryLevel then
 			carryPrompt.ActionText = "❌ Max Level"
 			task.delay(1.5, function()
 				carryPrompt.ActionText = "Upgrade Carry"
@@ -171,57 +81,95 @@ task.spawn(function()
 		carryDebounce[player] = true
 		carryPrompt.ActionText = "⏳ Wait..."
 
-		addCarrySlot(player, player.Character) -- CarryレベルとUIを更新
+		-- CarryLevelを増加させる
+		player:SetAttribute("CarryLevel", currentCarryLevel + CarryConfig.CarryLevelIncrease)
+		updateClientCarryUI(player) -- クライアントにUI更新を通知
 
 		task.delay(0.2, function()
 			carryDebounce[player] = nil
 			carryPrompt.ActionText = "Upgrade Carry"
 		end)
 	end)
-end)
+end
 
--- PlayerAdded & CharacterAdded で Carry UI を初期化
-game.Players.PlayerAdded:Connect(function(player)
-	player.CharacterAdded:Connect(function(char)
-		task.wait(0.5) -- Character初期化を待つ
-		applyCarryLevel(player, char)
-		-- クライアント側でUIを初期化するためにRemoteEventを送信
-		carryRemote:FireClient(player, "InitializeUI")
+-- プレイヤーが参加したときの処理
+Players.PlayerAdded:Connect(function(player)
+	initializePlayerCarry(player)
+	setupCarryUpgradePad() -- CarryUpgradePad をセットアップ
+
+	-- CharacterAddedイベントでUI更新などをトリガー
+	player.CharacterAdded:Connect(function(character)
+		-- 必要に応じて、キャラクター固有の初期化処理
+		updateClientCarryUI(player) -- UI更新をトリガー
+	end)
+
+	-- CarryLevelの変更を監視
+	player:GetAttributeChangedSignal("CarryLevel"):Connect(function()
+		updateClientCarryUI(player)
 	end)
 end)
 
 -- 既存プレイヤーの初期化
-for _, player in ipairs(game.Players:GetPlayers()) do
-	if player.Character then
-		task.spawn(applyCarryLevel, player, player.Character)
-		-- クライアント側でUIを初期化するためにRemoteEventを送信
-		carryRemote:FireClient(player, "InitializeUI")
-	end
+for _, player in ipairs(Players:GetPlayers()) do
+	initializePlayerCarry(player)
+	setupCarryUpgradePad()
+	updateClientCarryUI(player)
 end
 
--- CarryLevel変更時のUI更新
-local function watchCarryLevel(player)
-	local carryLevel = player:WaitForChild("CarryLevel", 10)
-	if carryLevel then
-		carryLevel.Changed:Connect(function()
-			applyCarryLevel(player, player.Character)
-			-- クライアント側でUIを更新するためにRemoteEventを送信
-			carryRemote:FireClient(player, "UpdateUI")
-		end)
+-- スロットタップ時の格納・回収イベントハンドリング
+carryRemote.OnServerEvent:Connect(function(player, action, targetInstance)
+	local character = player.Character
+	if not character then return end
+
+	local currentCarryLevel = player:GetAttribute("CarryLevel") or 1
+	local maxCarrySlots = CarryConfig.MaxCarrySlots -- CarryConfigから最大スロット数を取得
+
+	local carryStorage = player:FindFirstChild("CarryStorage")
+	if not carryStorage then return end
+
+	if action == "Store" then
+		-- 格納処理
+		local equippedTool = character:FindFirstChildOfClass("Tool")
+		if equippedTool and #carryStorage:GetChildren() < maxCarrySlots then
+			-- ツールをCarryStorageに移動
+			local toolToStore = equippedTool:Clone()
+			toolToStore.Parent = carryStorage
+			toolToStore.Name = equippedTool.Name .. "_" .. tick() -- 重複を避けるための命名
+
+			equippedTool:Destroy() -- 元のツールを削除
+
+			carryRemote:FireClient(player, "UpdateUI") -- UI更新を通知
+			return {success = true, message = "Item stored."}
+		else
+			return {success = false, message = "Cannot store item. Storage full or no item equipped."}
+		end
+
+	elseif action == "Retrieve" then
+		-- 回収処理
+		if targetInstance and targetInstance.Parent == carryStorage then
+			-- targetInstance をワールドに配置
+			local itemToRetrieve = targetInstance
+			itemToRetrieve.Parent = character -- キャラクターの子として配置（またはワークスペースなど）
+			
+			-- 必要に応じて、アイテムの位置を調整
+			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+			if humanoidRootPart then
+				itemToRetrieve:SetPrimaryPartCFrame(humanoidRootPart.CFrame * CFrame.new(0, 0, -5))
+			end
+			
+			carryRemote:FireClient(player, "UpdateUI") -- UI更新を通知
+			return {success = true, message = "Item retrieved."}
+		else
+			return {success = false, message = "Invalid item to retrieve or not in storage."}
+		end
 	end
-end
-game.Players.PlayerAdded:Connect(watchCarryLevel)
-for _, player in ipairs(game.Players:GetPlayers()) do
-	task.spawn(watchCarryLevel, player)
-end
+	return {success = false, message = "Unknown action."}
+end)
 
 -- =========================
 -- クリーンアップ
 -- =========================
-game.Players.PlayerRemoving:Connect(function(player)
+Players.PlayerRemoving:Connect(function(player)
 	carryDebounce[player] = nil
-	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
-	if carryStorage then
-		carryStorage:Destroy()
-	end
+	-- CarryStorageフォルダはPlayer.Parentなので、Playerが削除されるときに自動的に削除される
 end)
