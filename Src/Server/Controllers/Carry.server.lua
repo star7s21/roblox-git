@@ -6,6 +6,7 @@ local carryDebounce = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
+local CollectionService = game:GetService("CollectionService")
 
 -- CarryStorageのルートフォルダ設定（サーバー側でのみ安全に保持するためServerStorageを使用）
 local carryStorageRoot = ServerStorage:FindFirstChild("CarryStorage")
@@ -82,7 +83,7 @@ for _, player in ipairs(Players:GetPlayers()) do
 end
 
 -- スロットタップ時の格納・回収イベントハンドリング
-carryRemote.OnServerEvent:Connect(function(player, slotIndex)
+carryRemote.OnServerEvent:Connect(function(player, slotIndex, action)
 	local carryLevel = player:FindFirstChild("CarryLevel")
 	if not carryLevel then return end
 
@@ -100,22 +101,22 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 	local char = player.Character
 	if not char then return end
 
-	local currentTool = char:FindFirstChildOfClass("Tool")
-
-	if currentTool then
-		-- 手にToolを持っている場合：対象スロットが空ならそこに格納する
-		if slotVal.Value == "" then -- 空文字列かどうかで判断
+	if action == "Store" then
+		local currentTool = char:FindFirstChildOfClass("Tool")
+		if currentTool and slotVal.Value == "" then -- 現在手に持っていて、スロットが空の場合
 			slotVal.Value = currentTool.Name -- Toolの名前を保持
-			currentTool:Destroy() -- 現在手に持っているToolは削除（ServerStorageに移動するため）
+			currentTool:Destroy() -- 現在手に持っているToolは削除
+			carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, "") -- クライアントにスロットUI更新を通知
 		end
-	else
-		-- 手にToolを持っていない場合：対象スロットに格納されているものがあれば回収する
+	elseif action == "Retrieve" then
 		local storedToolName = slotVal.Value
 		if storedToolName ~= "" then
 			local toolFromStorage = carryStorage:FindFirstChild(storedToolName)
 			if toolFromStorage then
-				toolFromStorage.Parent = char -- Characterに移動して装備させる
+				-- CharacterにToolを移動して装備させる
+				toolFromStorage.Parent = char
 				slotVal.Value = "" -- スロットを空にする
+				carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, "") -- クライアントにスロットUI更新を通知
 			end
 		end
 	end
@@ -176,6 +177,8 @@ game.Players.PlayerAdded:Connect(function(player)
 	player.CharacterAdded:Connect(function(char)
 		task.wait(0.5) -- Character初期化を待つ
 		applyCarryLevel(player, char)
+		-- クライアント側でUIを初期化するためにRemoteEventを送信
+		carryRemote:FireClient(player, "InitializeUI")
 	end)
 end)
 
@@ -183,6 +186,8 @@ end)
 for _, player in ipairs(game.Players:GetPlayers()) do
 	if player.Character then
 		task.spawn(applyCarryLevel, player, player.Character)
+		-- クライアント側でUIを初期化するためにRemoteEventを送信
+		carryRemote:FireClient(player, "InitializeUI")
 	end
 end
 
@@ -192,6 +197,8 @@ local function watchCarryLevel(player)
 	if carryLevel then
 		carryLevel.Changed:Connect(function()
 			applyCarryLevel(player, player.Character)
+			-- クライアント側でUIを更新するためにRemoteEventを送信
+			carryRemote:FireClient(player, "UpdateUI")
 		end)
 	end
 end
