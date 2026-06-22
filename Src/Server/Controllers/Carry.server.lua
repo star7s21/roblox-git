@@ -4,48 +4,7 @@ local carryLevelIncrease = 1
 local carryDebounce = {}
 
 local function applyCarryLevel(player, char)
-	if not char then return end
-	local carryLevel = player:FindFirstChild("CarryLevel")
-
-	if not carryLevel then return end
-
-	local currentCarryLevel = carryLevel.Value
-
-	-- UIの更新（CarryStorageContainer内のScreenGuiを更新）
-	local carryStorageContainer = char:FindFirstChild("CarryStorageContainer")
-	if carryStorageContainer then
-		local screenGui = carryStorageContainer:FindFirstChild("CarryStorageGui")
-		if screenGui then
-			local frame = screenGui:FindFirstChildOfClass("Frame")
-			if frame then
-				frame.Size = UDim2.new(0, 200, 0, CARRY_SLOT_HEIGHT * currentCarryLevel) -- UIの高さをレベルに合わせて更新
-
-				-- slotsの更新
-				local slots = {}
-				for _, child in ipairs(frame:GetChildren()) do
-					if child:IsA("Frame") and child:FindFirstChild("TextLabel") then
-						table.insert(slots, child)
-					end
-				end
-
-				-- 新しいレベルのUIを追加
-				for i = #slots + 1, currentCarryLevel do
-					local slotFrame = Instance.new("Frame")
-					slotFrame.Size = UDim2.new(1, 0, 0, CARRY_SLOT_HEIGHT)
-					slotFrame.BackgroundTransparency = 1
-					slotFrame.LayoutOrder = i
-					slotFrame.Parent = frame
-
-					local slotLabel = Instance.new("TextLabel")
-					slotLabel.Size = UDim2.new(1, 0, 0, CARRY_SLOT_HEIGHT)
-					slotLabel.Text = "Slot " .. i .. ": Empty"
-					slotLabel.TextColor3 = Color3.new(1,1,1)
-					slotLabel.BackgroundTransparency = 1
-					slotLabel.Parent = slotFrame
-				end
-			end
-		end
-	end
+	-- UIの表示・更新処理はクライアント側（Carry.client.lua）で行われるため、サーバー側でのUI操作は行いません。
 end
 
 local function addCarrySlot(player, char)
@@ -56,7 +15,6 @@ local function addCarrySlot(player, char)
 	local newLevel = carryLevel.Value + carryLevelIncrease
 	if newLevel <= MAX_CARRY_LEVEL then
 		carryLevel.Value = newLevel
-		applyCarryLevel(player, char)
 	end
 end
 

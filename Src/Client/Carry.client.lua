@@ -1,29 +1,25 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 local carryLevel = player:WaitForChild("CarryLevel")
-local carryStorageContainer = workspace:WaitForChild(player.Name .. "_Base"):WaitForChild("CarryStorageContainer") or player:SetAttribute("CarryStorageContainer", Instance.new("Folder", player.Character.PrimaryPart)) -- Placeholder until base is created
+local playerGui = player:WaitForChild("PlayerGui")
 
 local function updateCarryStorageUI()
-	if not carryStorageContainer then return end
-
-	-- Clear existing UI
-	for _, child in ipairs(carryStorageContainer:GetChildren()) do
-		if child:IsA("ScreenGui") then
-			child:Destroy()
-		end
+	-- 既存のUIがあれば削除
+	local existingGui = playerGui:FindFirstChild("CarryStorageGui")
+	if existingGui then
+		existingGui:Destroy()
 	end
 
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "CarryStorageGui"
 	screenGui.ResetOnSpawn = false
-	screenGui.Parent = carryStorageContainer
+	screenGui.Parent = playerGui
 
 	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0, 200, 0, 40 * carryLevel.Value) -- Adjust height based on level
+	frame.Size = UDim2.new(0, 200, 0, 40 * carryLevel.Value) -- レベルに応じた高さ調整
 	frame.AnchorPoint = Vector2.new(0.5, 1)
-	frame.Position = UDim2.new(0.5, 0, 1, -10) -- Position at the bottom center
+	frame.Position = UDim2.new(0.5, 0, 1, -10) -- 画面下部中央に配置
 	frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 	frame.Parent = screenGui
 
@@ -32,7 +28,7 @@ local function updateCarryStorageUI()
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = frame
 
-	-- Placeholder for displaying treasures. This needs to be integrated with actual treasure data.
+	-- 各キャリースロットの作成
 	for i = 1, carryLevel.Value do
 		local slotFrame = Instance.new("Frame")
 		slotFrame.Size = UDim2.new(1, 0, 0, 40)
@@ -49,19 +45,14 @@ local function updateCarryStorageUI()
 	end
 end
 
+-- 値の変更時にUIを更新
 carryLevel:GetPropertyChangedSignal("Value"):Connect(function()
 	updateCarryStorageUI()
 end)
 
--- Initial UI update
-if player.Character then
-	carryStorageContainer = player.Character:FindFirstChild("CarryStorageContainer") or Instance.new("Folder", player.Character)
-	carryStorageContainer.Name = "CarryStorageContainer"
-	updateCarryStorageUI()
-end
+-- 初期化およびキャラクターロード時のUI更新
+updateCarryStorageUI()
 
 player.CharacterAdded:Connect(function(character)
-	carryStorageContainer = character:FindFirstChild("CarryStorageContainer") or Instance.new("Folder", character)
-	carryStorageContainer.Name = "CarryStorageContainer"
 	updateCarryStorageUI()
 end)
