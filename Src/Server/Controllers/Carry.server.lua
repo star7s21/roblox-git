@@ -63,7 +63,11 @@ end
 -- スロットタップ時の格納・回収イベントハンドリング
 carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 	local carryLevel = player:FindFirstChild("CarryLevel")
-	if not carryLevel or slotIndex > carryLevel.Value or slotIndex < 1 then return end
+	if not carryLevel then return end
+
+	-- スロット数は「レベル - 1」個、最大4個
+	local maxSlots = math.min(carryLevel.Value - 1, 4)
+	if slotIndex > maxSlots or slotIndex < 1 then return end
 
 	local carrySlots = player:FindFirstChild("CarrySlots")
 	local carryStorage = player:FindFirstChild("CarryStorage")
@@ -78,15 +82,16 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 	local currentTool = char:FindFirstChildOfClass("Tool")
 
 	if currentTool then
-		-- 手にToolを持っている場合：スロットが空なら格納する
+		-- 手にToolを持っている場合：対象スロットが空ならそこに格納する
 		if slotVal.Value == nil then
 			slotVal.Value = currentTool
 			currentTool.Parent = carryStorage
 		end
 	else
-		-- 手にToolを持っていない場合：スロットに格納されているものがあれば手元に戻す
+		-- 手にToolを持っていない場合：対象スロットに格納されているものがあれば回収する
 		local storedTool = slotVal.Value
 		if storedTool and storedTool:IsDescendantOf(carryStorage) then
+			-- BackpackではなくCharacterの直下に配置することで装備させる
 			storedTool.Parent = char
 			slotVal.Value = nil
 		end

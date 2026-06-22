@@ -14,8 +14,14 @@ local function updateCarryStorageUI()
 		existingGui:Destroy()
 	end
 
-	-- レベル1の時は表示しない
-	if carryLevel.Value <= 1 then
+	-- スロット数は「レベル - 1」個
+	local slotCount = carryLevel.Value - 1
+	if slotCount > 4 then
+		slotCount = 4
+	end
+
+	-- 1個未満（レベル1以下）の時は表示しない
+	if slotCount <= 0 then
 		return
 	end
 
@@ -25,8 +31,8 @@ local function updateCarryStorageUI()
 	screenGui.Parent = playerGui
 
 	local frame = Instance.new("Frame")
-	-- 横並びにするため、幅をレベルに合わせてスケール
-	frame.Size = UDim2.new(0, 65 * carryLevel.Value, 0, 50)
+	-- 横並びにするため、幅をスロット数に合わせてスケール
+	frame.Size = UDim2.new(0, 65 * slotCount, 0, 50)
 	frame.AnchorPoint = Vector2.new(0.5, 1)
 	frame.Position = UDim2.new(0.5, 0, 1, -10) -- 画面下部中央に配置
 	frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -41,7 +47,7 @@ local function updateCarryStorageUI()
 	layout.Parent = frame
 
 	-- 各キャリースロットの作成
-	for i = 1, carryLevel.Value do
+	for i = 1, slotCount do
 		local slotBtn = Instance.new("TextButton")
 		slotBtn.Size = UDim2.new(0, 60, 0, 40)
 		slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
