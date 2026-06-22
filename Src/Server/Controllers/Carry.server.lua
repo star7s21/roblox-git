@@ -108,7 +108,19 @@ end)
 
 -- CarryUpgrade PadのProximityPrompt設定
 task.spawn(function()
-	local carryUpgradePad = workspace:WaitForChild("CarryUpgrade")
+	-- WorkspaceにCarryUpgradeが存在しない場合は動的に作成する
+	local carryUpgradePad = workspace:FindFirstChild("CarryUpgrade")
+	if not carryUpgradePad then
+		carryUpgradePad = Instance.new("Part")
+		carryUpgradePad.Name = "CarryUpgrade"
+		carryUpgradePad.Size = Vector3.new(5, 0.5, 5)
+		carryUpgradePad.Position = Vector3.new(10, 0.25, 10) -- 仮の初期位置
+		carryUpgradePad.Anchored = true
+		carryUpgradePad.BrickColor = BrickColor.new("Bright blue")
+		carryUpgradePad.Material = Enum.Material.Neon
+		carryUpgradePad.Parent = workspace
+	end
+
 	local carryPrompt = carryUpgradePad:FindFirstChildOfClass("ProximityPrompt")
 	if not carryPrompt then
 		carryPrompt = Instance.new("ProximityPrompt")
