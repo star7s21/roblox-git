@@ -6,6 +6,14 @@ local carryDebounce = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
+-- CarryStorageのルートフォルダ設定
+local carryStorageRoot = ReplicatedStorage:FindFirstChild("CarryStorage")
+if not carryStorageRoot then
+	carryStorageRoot = Instance.new("Folder")
+	carryStorageRoot.Name = "CarryStorage"
+	carryStorageRoot.Parent = ReplicatedStorage
+end
+
 -- 通信用RemoteEventの設定
 local carryRemote = ReplicatedStorage:FindFirstChild("CarryRemote")
 if not carryRemote then
@@ -31,11 +39,11 @@ end
 
 -- プレイヤーごとの格納用フォルダとスロットデータの初期化
 local function initializePlayerSlots(player)
-	local carryStorage = player:FindFirstChild("CarryStorage")
+	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
 	if not carryStorage then
 		carryStorage = Instance.new("Folder")
-		carryStorage.Name = "CarryStorage"
-		carryStorage.Parent = player
+		carryStorage.Name = player.Name
+		carryStorage.Parent = carryStorageRoot
 	end
 
 	local carrySlots = player:FindFirstChild("CarrySlots")
@@ -70,7 +78,7 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 	if slotIndex > maxSlots or slotIndex < 1 then return end
 
 	local carrySlots = player:FindFirstChild("CarrySlots")
-	local carryStorage = player:FindFirstChild("CarryStorage")
+	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
 	if not carrySlots or not carryStorage then return end
 
 	local slotVal = carrySlots:FindFirstChild("Slot" .. slotIndex)
@@ -169,4 +177,8 @@ end
 -- =========================
 game.Players.PlayerRemoving:Connect(function(player)
 	carryDebounce[player] = nil
+	local carryStorage = carryStorageRoot:FindFirstChild(player.Name)
+	if carryStorage then
+		carryStorage:Destroy()
+	end
 end)
