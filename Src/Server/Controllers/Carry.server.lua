@@ -108,12 +108,7 @@ end)
 
 -- CarryUpgrade PadのProximityPrompt設定
 task.spawn(function()
-	local carryUpgradePad = workspace:WaitForChild("CarryUpgrade", 5)
-	if not carryUpgradePad then
-		warn("CarryUpgrade pad not found in workspace within 5 seconds.")
-		return
-	end
-
+	local carryUpgradePad = workspace:WaitForChild("CarryUpgrade")
 	local carryPrompt = carryUpgradePad:FindFirstChildOfClass("ProximityPrompt")
 	if not carryPrompt then
 		carryPrompt = Instance.new("ProximityPrompt")
