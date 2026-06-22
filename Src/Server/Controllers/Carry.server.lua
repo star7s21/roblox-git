@@ -104,13 +104,21 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex, action)
 	if action == "Store" then
 		local currentTool = char:FindFirstChildOfClass("Tool")
 		if currentTool and slotVal.Value == "" then -- 現在手に持っていて、スロットが空の場合
-			slotVal.Value = currentTool.Name -- Toolの名前を保持
-			currentTool:Destroy() -- 現在手に持っているToolは削除
-			carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, "") -- クライアントにスロットUI更新を通知
+			local toolName = currentTool.Name
+			slotVal.Value = toolName -- Toolの名前を保持
+
+			-- Toolをサーバー側で保持する場所（ServerStorage内のプレイヤーごとのフォルダ）に移動
+			-- toolFromStorage = carryStorage:FindFirstChild(storedToolName) のような既存の処理があるので、
+			-- ここでは実際にServerStorageに移動するのではなく、Instanceを直接操作できるようにする
+			local toolToStore = currentTool
+			toolToStore.Parent = carryStorage -- ServerStorage内のプレイヤーフォルダに移動
+
+			carryRemote:FireClient(player, "UpdateSlotUI", slotIndex, toolName) -- クライアントにスロットUI更新を通知
 		end
 	elseif action == "Retrieve" then
 		local storedToolName = slotVal.Value
 		if storedToolName ~= "" then
+			-- ServerStorageからツールを探す
 			local toolFromStorage = carryStorage:FindFirstChild(storedToolName)
 			if toolFromStorage then
 				-- CharacterにToolを移動して装備させる
