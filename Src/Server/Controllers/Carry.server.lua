@@ -4,14 +4,15 @@ local carryLevelIncrease = 1
 local carryDebounce = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
 
--- CarryStorageのルートフォルダ設定
-local carryStorageRoot = ReplicatedStorage:FindFirstChild("CarryStorage")
+-- CarryStorageのルートフォルダ設定（サーバー側でのみ安全に保持するためServerStorageを使用）
+local carryStorageRoot = ServerStorage:FindFirstChild("CarryStorage")
 if not carryStorageRoot then
 	carryStorageRoot = Instance.new("Folder")
 	carryStorageRoot.Name = "CarryStorage"
-	carryStorageRoot.Parent = ReplicatedStorage
+	carryStorageRoot.Parent = ServerStorage
 end
 
 -- 通信用RemoteEventの設定
@@ -55,9 +56,21 @@ local function initializePlayerSlots(player)
 
 	for i = 1, MAX_CARRY_LEVEL do
 		local slotName = "Slot" .. i
-		if not carrySlots:FindFirstChild(slotName) then
-			local slotVal = Instance.new("ObjectValue")
+		
+		-- 各スロット専用の実体格納用フォルダを作成
+		local slotFolder = carryStorage:FindFirstChild(slotName)
+		if not slotFolder then
+			slotFolder = Instance.new("Folder")
+			slotFolder.Name = slotName
+			slotFolder.Parent = carryStorage
+		end
+
+		-- スロットをStringValueとして初期化（ツールの名前を保持する）
+		local slotVal = carrySlots:FindFirstChild(slotName)
+		if not slotVal then
+			slotVal = Instance.new("StringValue")
 			slotVal.Name = slotName
+			slotVal.Value = ""
 			slotVal.Parent = carrySlots
 		end
 	end

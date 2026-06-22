@@ -61,8 +61,8 @@ local function updateCarryStorageUI()
 		-- スロット状態の監視と表示更新
 		local slotVal = carrySlots:WaitForChild("Slot" .. i)
 		local function updateSlotText()
-			if slotVal.Value then
-				slotBtn.Text = "Slot " .. i .. "\n" .. slotVal.Value.Name
+			if slotVal.Value ~= "" then
+				slotBtn.Text = "Slot " .. i .. "\n" .. slotVal.Value
 				slotBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 60) -- 格納中は色を変更
 			else
 				slotBtn.Text = "Slot " .. i .. "\nEmpty"
