@@ -104,19 +104,19 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 
 	if currentTool then
 		-- 手にToolを持っている場合：対象スロットが空ならそこに格納する
-		if slotVal.Value == nil then
-			slotVal.Value = currentTool
-			currentTool.Parent = carryStorage
+		if slotVal.Value == "" then -- 空文字列かどうかで判断
+			slotVal.Value = currentTool.Name -- Toolの名前を保持
+			currentTool:Destroy() -- 現在手に持っているToolは削除（ServerStorageに移動するため）
 		end
 	else
 		-- 手にToolを持っていない場合：対象スロットに格納されているものがあれば回収する
-		local storedTool = slotVal.Value
-		-- LuaのStringValueではInstanceを直接保持できないため、ItemNameなどを保持するように変更。
-		-- ここでは、ValueがInstanceであることを確認し、IsDescendantOfでチェックする。
-		if storedTool and typeof(storedTool) == "Instance" and storedTool:IsDescendantOf(carryStorage) then
-			-- BackpackではなくCharacterの直下に配置することで装備させる
-			storedTool.Parent = char
-			slotVal.Value = nil
+		local storedToolName = slotVal.Value
+		if storedToolName ~= "" then
+			local toolFromStorage = carryStorage:FindFirstChild(storedToolName)
+			if toolFromStorage then
+				toolFromStorage.Parent = char -- Characterに移動して装備させる
+				slotVal.Value = "" -- スロットを空にする
+			end
 		end
 	end
 end)
