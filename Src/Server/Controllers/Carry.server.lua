@@ -107,39 +107,45 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 end)
 
 -- CarryUpgrade PadのProximityPrompt設定
-local carryUpgradePad = workspace:WaitForChild("CarryUpgrade")
-local carryPrompt = carryUpgradePad:FindFirstChildOfClass("ProximityPrompt")
-
-if not carryPrompt then
-	carryPrompt = Instance.new("ProximityPrompt")
-	carryPrompt.Parent = carryUpgradePad
-end
-carryPrompt.ActionText = "Upgrade Carry"
-carryPrompt.KeyboardKeyCode = Enum.KeyCode.E
-carryPrompt.HoldDuration = 0
-
-carryPrompt.Triggered:Connect(function(player)
-	if carryDebounce[player] then return end
-
-	local carryLevel = player:FindFirstChild("CarryLevel")
-	if not carryLevel then return end
-
-	if carryLevel.Value >= MAX_CARRY_LEVEL then
-		carryPrompt.ActionText = "❌ Max Level"
-		task.delay(1.5, function()
-			carryPrompt.ActionText = "Upgrade Carry"
-		end)
+task.spawn(function()
+	local carryUpgradePad = workspace:WaitForChild("CarryUpgrade", 5)
+	if not carryUpgradePad then
+		warn("CarryUpgrade pad not found in workspace within 5 seconds.")
 		return
 	end
 
-	carryDebounce[player] = true
-	carryPrompt.ActionText = "⏳ Wait..."
+	local carryPrompt = carryUpgradePad:FindFirstChildOfClass("ProximityPrompt")
+	if not carryPrompt then
+		carryPrompt = Instance.new("ProximityPrompt")
+		carryPrompt.Parent = carryUpgradePad
+	end
+	carryPrompt.ActionText = "Upgrade Carry"
+	carryPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	carryPrompt.HoldDuration = 0
 
-	addCarrySlot(player, player.Character) -- CarryレベルとUIを更新
+	carryPrompt.Triggered:Connect(function(player)
+		if carryDebounce[player] then return end
 
-	task.delay(0.2, function()
-		carryDebounce[player] = nil
-		carryPrompt.ActionText = "Upgrade Carry"
+		local carryLevel = player:FindFirstChild("CarryLevel")
+		if not carryLevel then return end
+
+		if carryLevel.Value >= MAX_CARRY_LEVEL then
+			carryPrompt.ActionText = "❌ Max Level"
+			task.delay(1.5, function()
+				carryPrompt.ActionText = "Upgrade Carry"
+			end)
+			return
+		end
+
+		carryDebounce[player] = true
+		carryPrompt.ActionText = "⏳ Wait..."
+
+		addCarrySlot(player, player.Character) -- CarryレベルとUIを更新
+
+		task.delay(0.2, function()
+			carryDebounce[player] = nil
+			carryPrompt.ActionText = "Upgrade Carry"
+		end)
 	end)
 end)
 
