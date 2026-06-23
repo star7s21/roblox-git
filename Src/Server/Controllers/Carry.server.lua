@@ -25,8 +25,9 @@ end
 -- プレイヤーのCarryLevelに応じたUI更新処理
 local function updateClientCarryUI(player)
 	local carryLevel = player:GetAttribute("CarryLevel") or 1
-	local slotCount = carryLevel - 1 -- スロット数はレベル-1
-	if slotCount < 0 then slotCount = 0 end
+	-- スロット数はレベルに応じて決定。レベル1は0スロット、レベル2は1スロット...レベル5は4スロット。
+	-- MAX_CARRY_LEVELは5なので、最大スロット数はMAX_CARRY_LEVEL - 1 = 4 となる。
+	local slotCount = math.max(0, carryLevel - 1)
 	-- クライアントにUI更新を通知し、現在のスロット数を渡す
 	carryRemote:FireClient(player, "UpdateUI", slotCount)
 end
