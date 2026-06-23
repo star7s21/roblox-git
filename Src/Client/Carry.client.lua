@@ -2,28 +2,26 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
-local carryLevel = player:WaitForChild("CarryLevel")
-local playerGui = player:WaitForChild("PlayerGui")
-local carrySlots = player:WaitForChild("CarrySlots")
 local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
+local playerGui = player:WaitForChild("PlayerGui")
 
-local function updateCarryStorageUI()
+local CarryConfig = require(ReplicatedStorage.Shared.CarryConfig) -- CarryConfigをReplicatedStorageからロード
+
+local currentSlotCount = 0 -- 現在表示されているスロット数
+
+local function updateCarryStorageUI(slotCount)
 	-- 既存のUIがあれば削除
 	local existingGui = playerGui:FindFirstChild("CarryStorageGui")
 	if existingGui then
 		existingGui:Destroy()
 	end
-
-	-- スロット数は「レベル - 1」個
-	local slotCount = carryLevel.Value - 1
-	if slotCount > 4 then
-		slotCount = 4
-	end
-
-	-- 1個未満（レベル1以下）の時は表示しない
+	
+	-- slotCountが0以下の場合はUIを表示しない
 	if slotCount <= 0 then
 		return
 	end
+
+	currentSlotCount = slotCount -- 現在のスロット数を更新
 
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "CarryStorageGui"
@@ -58,36 +56,29 @@ local function updateCarryStorageUI()
 		slotBtn.TextColor3 = Color3.new(1, 1, 1)
 		slotBtn.Parent = frame
 
-		-- スロット状態の監視と表示更新
-		local slotVal = carrySlots:WaitForChild("Slot" .. i)
-		local function updateSlotText()
-			if slotVal.Value ~= "" then
-				slotBtn.Text = "Slot " .. i .. "\n" .. slotVal.Value
-				slotBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 60) -- 格納中は色を変更
-			else
-				slotBtn.Text = "Slot " .. i .. "\nEmpty"
-				slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-			end
-		end
-
-		slotVal.Changed:Connect(updateSlotText)
-		updateSlotText()
+		-- slotBtnのテキストと背景色を設定
+		slotBtn.Text = "Slot " .. i .. "\nEmpty"
+		slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 
 		-- タップ時の格納・回収リクエスト
 		slotBtn.MouseButton1Click:Connect(function()
-			carryRemote:FireServer(i)
+			carryRemote:FireServer(i) -- slotIndex をサーバーに送信
 		end)
 	end
 end
 
--- 値の変更時にUIを更新
-carryLevel:GetPropertyChangedSignal("Value"):Connect(function()
-	updateCarryStorageUI()
+-- サーバーからのUI更新通知を受け取る
+carryRemote.OnClientEvent:Connect(function(action, slotCount)
+	if action == "UpdateUI" then
+		updateCarryStorageUI(slotCount)
+	end
 end)
 
 -- 初期化およびキャラクターロード時のUI更新
-updateCarryStorageUI()
+-- プレイヤー参加時にサーバーから初期スロット数が通知されるのを待つ
+-- player.CharacterAdded:Connect(function(character)
+-- 	-- キャラクターロード時にサーバーからUI更新情報が送られてくるはずなので、ここでは特別な処理は不要
+-- end)
 
-player.CharacterAdded:Connect(function(character)
-	updateCarryStorageUI()
-end)
+-- ゲーム開始時（またはクライアントロード時）にサーバーにUI更新を要求
+-- carryRemote:FireServer("RequestUIUpdate") -- これはサーバー側でHandleされる必要あり

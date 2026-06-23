@@ -16,6 +16,9 @@
       "DropTreasureEvent": {
         "$className": "RemoteEvent"
       },
+      "CarryRemote": {
+        "$className": "RemoteEvent"
+      },
       "Shared": {
         "$path": "Src/Shared"
       }

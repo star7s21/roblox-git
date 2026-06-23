@@ -1,14 +1,17 @@
-local MAX_CARRY_LEVEL = 5
-local carryLevelIncrease = 1
+local CarryConfig = require(script.Parent.Services.CarryConfig) -- パスは環境に合わせて調整してください
 local carryDebounce = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
-local CollectionService = game:GetService("CollectionService")
 
--- CarryConfig をロード
-local CarryConfig = require(script.Parent.Services.CarryConfig) -- パスは環境に合わせて調整してください
+-- CarryRemoteが存在しない場合は作成
+local carryRemote = ReplicatedStorage:FindFirstChild("CarryRemote")
+if not carryRemote then
+	carryRemote = Instance.new("RemoteEvent")
+	carryRemote.Name = "CarryRemote"
+	carryRemote.Parent = ReplicatedStorage
+end
 
 -- CarryStorageのルートフォルダ設定
 local carryStorageRoot = ServerStorage:FindFirstChild("CarryStorage")
@@ -18,12 +21,14 @@ if not carryStorageRoot then
 	carryStorageRoot.Parent = ServerStorage
 end
 
--- 通信用RemoteEventの設定
-local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
-
 -- プレイヤーのCarryLevelに応じたUI更新処理
 local function updateClientCarryUI(player)
-	carryRemote:FireClient(player, "UpdateUI")
+	local carryLevel = player:GetAttribute("CarryLevel") or 1
+	local slotCount = carryLevel - 1 -- スロット数はレベル-1
+	if slotCount < 0 then slotCount = 0 end
+	
+	-- クライアントにUI更新を通知し、現在のスロット数を渡す
+	carryRemote:FireClient(player, "UpdateUI", slotCount)
 end
 
 -- プレイヤーのCarryLevelとスロットを初期化
@@ -99,7 +104,6 @@ Players.PlayerAdded:Connect(function(player)
 
 	-- CharacterAddedイベントでUI更新などをトリガー
 	player.CharacterAdded:Connect(function(character)
-		-- 必要に応じて、キャラクター固有の初期化処理
 		updateClientCarryUI(player) -- UI更新をトリガー
 	end)
 
@@ -117,53 +121,61 @@ for _, player in ipairs(Players:GetPlayers()) do
 end
 
 -- スロットタップ時の格納・回収イベントハンドリング
-carryRemote.OnServerEvent:Connect(function(player, action, targetInstance)
+-- CarryRemote.OnServerEvent:Connect(function(player, slotIndex, action) -- slotIndex と action を受け取るように変更
+carryRemote.OnServerEvent:Connect(function(player, slotIndex) -- slotIndex のみを受け取るように変更
 	local character = player.Character
 	if not character then return end
 
 	local currentCarryLevel = player:GetAttribute("CarryLevel") or 1
 	local maxCarrySlots = CarryConfig.MaxCarrySlots -- CarryConfigから最大スロット数を取得
-
 	local carryStorage = player:FindFirstChild("CarryStorage")
-	if not carryStorage then return end
 
-	if action == "Store" then
+	if not carryStorage then
+		warn("CarryStorage not found for player:", player.Name)
+		return {success = false, message = "Internal error."}
+	end
+	
+	-- slotIndex が有効な範囲内かチェック
+	if slotIndex == nil or slotIndex < 1 or slotIndex > maxCarrySlots then
+		warn("Invalid slotIndex received:", slotIndex)
+		return {success = false, message = "Invalid slot index."}
+	end
+
+	local currentSlotsCount = #carryStorage:GetChildren()
+	local toolInSlot = carryStorage:FindFirstChild("Slot"..slotIndex) -- slotIndex に対応するアイテムを探す
+
+	if toolInSlot then
+		-- 回収処理
+		-- ツールをキャラクターにアタッチ（またはワールドに配置）
+		local itemToRetrieve = toolInSlot
+		itemToRetrieve.Parent = character -- キャラクターの子として配置
+
+		-- 必要に応じて、アイテムの位置を調整
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+		if humanoidRootPart then
+			-- キャラクターの前面に配置
+			itemToRetrieve:SetPrimaryPartCFrame(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
+		end
+		
+		carryRemote:FireClient(player, "UpdateUI", currentCarryLevel - 1) -- UI更新を通知
+		return {success = true, message = "Item retrieved."}
+	else
 		-- 格納処理
 		local equippedTool = character:FindFirstChildOfClass("Tool")
-		if equippedTool and #carryStorage:GetChildren() < maxCarrySlots then
+		if equippedTool and currentSlotsCount < maxCarrySlots then
 			-- ツールをCarryStorageに移動
 			local toolToStore = equippedTool:Clone()
 			toolToStore.Parent = carryStorage
-			toolToStore.Name = equippedTool.Name .. "_" .. tick() -- 重複を避けるための命名
+			toolToStore.Name = "Slot"..slotIndex -- slotIndex を名前に使用
 
 			equippedTool:Destroy() -- 元のツールを削除
 
-			carryRemote:FireClient(player, "UpdateUI") -- UI更新を通知
+			carryRemote:FireClient(player, "UpdateUI", currentCarryLevel - 1) -- UI更新を通知
 			return {success = true, message = "Item stored."}
 		else
 			return {success = false, message = "Cannot store item. Storage full or no item equipped."}
 		end
-
-	elseif action == "Retrieve" then
-		-- 回収処理
-		if targetInstance and targetInstance.Parent == carryStorage then
-			-- targetInstance をワールドに配置
-			local itemToRetrieve = targetInstance
-			itemToRetrieve.Parent = character -- キャラクターの子として配置（またはワークスペースなど）
-			
-			-- 必要に応じて、アイテムの位置を調整
-			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-			if humanoidRootPart then
-				itemToRetrieve:SetPrimaryPartCFrame(humanoidRootPart.CFrame * CFrame.new(0, 0, -5))
-			end
-			
-			carryRemote:FireClient(player, "UpdateUI") -- UI更新を通知
-			return {success = true, message = "Item retrieved."}
-		else
-			return {success = false, message = "Invalid item to retrieve or not in storage."}
-		end
 	end
-	return {success = false, message = "Unknown action."}
 end)
 
 -- =========================
