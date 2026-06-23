@@ -101,6 +101,11 @@ end
 -- プレイヤーが参加したときの処理
 Players.PlayerAdded:Connect(function(player)
 	initializePlayerCarry(player)
+	-- CarryLevel属性が存在しない場合はデフォルト値1を設定
+	if not player:GetAttribute("CarryLevel") then
+		player:SetAttribute("CarryLevel", 1)
+	end
+	updateClientCarryUI(player) -- UI更新をトリガー
 	setupCarryUpgradePad() -- CarryUpgradePad をセットアップ
 
 	-- CharacterAddedイベントでUI更新などをトリガー
@@ -117,8 +122,12 @@ end)
 -- 既存プレイヤーの初期化
 for _, player in ipairs(Players:GetPlayers()) do
 	initializePlayerCarry(player)
+	-- CarryLevel属性が存在しない場合はデフォルト値1を設定
+	if not player:GetAttribute("CarryLevel") then
+		player:SetAttribute("CarryLevel", 1)
+	end
+	updateClientCarryUI(player) -- UI更新をトリガー
 	setupCarryUpgradePad()
-	updateClientCarryUI(player)
 end
 
 -- スロットタップ時の格納・回収イベントハンドリング
