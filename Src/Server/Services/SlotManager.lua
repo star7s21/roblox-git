@@ -1,9 +1,7 @@
 local SlotManager = {}
 
 local SPACING = 70
--- CarryConfig から最大スロット数を取得
-local CarryConfig = require(game:GetService("ReplicatedStorage").Shared.CarryConfig) -- パスは環境に合わせて調整してください
-local MAX_SLOTS = CarryConfig.MaxCarrySlots -- CarryConfigから最大スロット数を取得
+local MAX_SLOTS = 7
 local used = {}
 
 function SlotManager.assignSlot(player)

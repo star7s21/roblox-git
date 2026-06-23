@@ -5,8 +5,6 @@ local player = Players.LocalPlayer
 local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
 local playerGui = player:WaitForChild("PlayerGui")
 
-local CarryConfig = require(ReplicatedStorage.Shared.CarryConfig) -- CarryConfigをReplicatedStorageからロード
-
 local currentSlotCount = 0 -- 現在表示されているスロット数
 
 local function updateCarryStorageUI(slotCount)
