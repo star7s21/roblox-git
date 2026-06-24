@@ -29,8 +29,20 @@ local function updateClientCarryUI(player)
 	-- スロット数はレベルに応じて決定。レベル1は0スロット、レベル2は1スロット...レベル5は4スロット。
 	-- MAX_CARRY_LEVELは5なので、最大スロット数はMAX_CARRY_LEVEL - 1 = 4 となる。
 	local slotCount = math.max(0, carryLevel - 1)
-	-- クライアントにUI更新を通知し、現在のスロット数を渡す
-	carryRemote:FireClient(player, "UpdateUI", slotCount)
+
+	local slotContents = {}
+	local carryStorage = player:FindFirstChild("CarryStorage")
+	for i = 1, slotCount do
+		local item = carryStorage and carryStorage:FindFirstChild("Slot" .. i)
+		if item then
+			slotContents[i] = item:GetAttribute("OriginalName") or item.Name
+		else
+			slotContents[i] = "Empty"
+		end
+	end
+
+	-- クライアントにUI更新を通知し、現在のスロットコンテンツを渡す
+	carryRemote:FireClient(player, "UpdateUI", slotContents)
 end
 
 -- プレイヤーのCarryLevelとスロットを初期化
@@ -142,50 +154,67 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 	local carryStorage = player:FindFirstChild("CarryStorage")
 	if not carryStorage then
 		warn("CarryStorage not found for player:", player.Name)
-		return {success = false, message = "Internal error."}
+		return
 	end
 
-	local maxCarrySlots = MAX_CARRY_LEVEL
+	local carryLevelObj = player:FindFirstChild("CarryLevel")
+	local carryLevel = carryLevelObj and carryLevelObj.Value or 1
+	local maxCarrySlots = math.max(0, carryLevel - 1)
 	
 	-- slotIndex が有効な範囲内かチェック
 	if slotIndex == nil or slotIndex < 1 or slotIndex > maxCarrySlots then
 		warn("Invalid slotIndex received:", slotIndex)
-		return {success = false, message = "Invalid slot index."}
+		return
 	end
 
-	local currentSlotsCount = #carryStorage:GetChildren()
-	local toolInSlot = carryStorage:FindFirstChild("Slot"..slotIndex) -- slotIndex に対応するアイテムを探す
+	local equippedTool = character:FindFirstChildOfClass("Tool")
+	local toolInSlot = carryStorage:FindFirstChild("Slot"..slotIndex)
 
-	if toolInSlot then
-		-- 回収処理
-		-- ツールをキャラクターにアタッチ（またはワールドに配置）
-		local itemToRetrieve = toolInSlot
-		itemToRetrieve.Parent = character -- キャラクターの子として配置
-
-		-- 必要に応じて、アイテムの位置を調整
-		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-		if humanoidRootPart then
-			-- キャラクターの前面に配置
-			itemToRetrieve:SetPrimaryPartCFrame(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
-		end
-		
-		updateClientCarryUI(player) -- UI更新を通知
-		return {success = true, message = "Item retrieved."}
-	else
-		-- 格納処理
-		local equippedTool = character:FindFirstChildOfClass("Tool")
-		if equippedTool and currentSlotsCount < maxCarrySlots then
-			-- ツールをCarryStorageに移動
+	if equippedTool then
+		-- 格納処理 (Treasureをもっているときは格納)
+		-- スロットが空、もしくはすでにアイテムがある場合は入れ替え
+		if toolInSlot then
+			-- 入れ替え (Swap) 処理
 			local toolToStore = equippedTool:Clone()
+			toolToStore:SetAttribute("OriginalName", equippedTool.Name)
+			toolToStore.Name = "Slot"..slotIndex
+
+			local itemToRetrieve = toolInSlot
+			itemToRetrieve.Name = itemToRetrieve:GetAttribute("OriginalName") or "Tool"
+			itemToRetrieve.Parent = character
+
+			equippedTool:Destroy()
 			toolToStore.Parent = carryStorage
-			toolToStore.Name = "Slot"..slotIndex -- slotIndex を名前に使用
 
-			equippedTool:Destroy() -- 元のツールを削除
-
-			updateClientCarryUI(player) -- UI更新を通知
-			return {success = true, message = "Item stored."}
+			-- キャラクターの前面に配置
+			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+			if humanoidRootPart then
+				itemToRetrieve:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
+			end
 		else
-			return {success = false, message = "Cannot store item. Storage full or no item equipped."}
+			-- 普通に格納
+			local toolToStore = equippedTool:Clone()
+			toolToStore:SetAttribute("OriginalName", equippedTool.Name)
+			toolToStore.Name = "Slot"..slotIndex
+			toolToStore.Parent = carryStorage
+
+			equippedTool:Destroy()
+		end
+		updateClientCarryUI(player)
+	else
+		-- 回収処理 (Slotに格納されていてTreasureを持っていない場合は回収)
+		if toolInSlot then
+			local itemToRetrieve = toolInSlot
+			itemToRetrieve.Name = itemToRetrieve:GetAttribute("OriginalName") or "Tool"
+			itemToRetrieve.Parent = character -- キャラクターの子として配置（装備）
+
+			-- 必要に応じて、アイテムの位置を調整
+			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+			if humanoidRootPart then
+				itemToRetrieve:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
+			end
+			
+			updateClientCarryUI(player)
 		end
 	end
 end)

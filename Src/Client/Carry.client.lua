@@ -7,13 +7,14 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local currentSlotCount = 0 -- 現在表示されているスロット数
 
-local function updateCarryStorageUI(slotCount)
+local function updateCarryStorageUI(slotContents)
 	-- 既存のUIがあれば削除
 	local existingGui = playerGui:FindFirstChild("CarryStorageGui")
 	if existingGui then
 		existingGui:Destroy()
 	end
 	
+	local slotCount = #slotContents
 	-- slotCountが0以下の場合はUIを表示しない
 	if slotCount <= 0 then
 		return
@@ -46,7 +47,6 @@ local function updateCarryStorageUI(slotCount)
 	for i = 1, slotCount do
 		local slotBtn = Instance.new("TextButton")
 		slotBtn.Size = UDim2.new(0, 60, 0, 40)
-		slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 		slotBtn.BorderSizePixel = 1
 		slotBtn.LayoutOrder = i
 		slotBtn.TextSize = 10
@@ -55,8 +55,14 @@ local function updateCarryStorageUI(slotCount)
 		slotBtn.Parent = frame
 
 		-- slotBtnのテキストと背景色を設定
-		slotBtn.Text = "Slot " .. i .. "\nEmpty"
-		slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+		local contentName = slotContents[i] or "Empty"
+		slotBtn.Text = "Slot " .. i .. "\n" .. contentName
+
+		if contentName == "Empty" then
+			slotBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+		else
+			slotBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+		end
 
 		-- タップ時の格納・回収リクエスト
 		slotBtn.MouseButton1Click:Connect(function()
@@ -66,9 +72,9 @@ local function updateCarryStorageUI(slotCount)
 end
 
 -- サーバーからのUI更新通知を受け取る
-carryRemote.OnClientEvent:Connect(function(action, slotCount)
+carryRemote.OnClientEvent:Connect(function(action, slotContents)
 	if action == "UpdateUI" then
-		updateCarryStorageUI(slotCount)
+		updateCarryStorageUI(slotContents)
 	end
 end)
 
