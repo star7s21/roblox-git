@@ -78,5 +78,5 @@ end)
 -- 	-- キャラクターロード時にサーバーからUI更新情報が送られてくるはずなので、ここでは特別な処理は不要
 -- end)
 
--- ゲーム開始時（またはクライアントロード時）にサーバーにUI更新を要求
--- carryRemote:FireServer("RequestUIUpdate") -- これはサーバー側でHandleされる必要あり
+-- ゲーム開始時にサーバーにUI更新を要求
+carryRemote:FireServer("RequestUIUpdate")
