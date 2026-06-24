@@ -22,6 +22,102 @@ if not carryStorageRoot then
 	carryStorageRoot.Parent = ServerStorage
 end
 
+local treasureFolder = ReplicatedStorage:WaitForChild("Treasures")
+
+-- 宝箱アイテムをプレイヤーに持たせる処理
+local function equipTreasure(player, typeName, level, displayName)
+	local character = player.Character
+	if not character then return end
+	local head = character:FindFirstChild("Head")
+	if not head then return end
+
+	-- 既存の手持ち宝箱をクリーンアップ
+	local existing = character:FindFirstChild("CarriedTreasure")
+	if existing then existing:Destroy() end
+
+	-- プレイヤーの状態を表すValueオブジェクトを作成・更新
+	local tag = player:FindFirstChild("HasTreasure")
+	if not tag then
+		tag = Instance.new("BoolValue")
+		tag.Name = "HasTreasure"
+		tag.Parent = player
+	end
+
+	local levelObj = player:FindFirstChild("TreasureLevel")
+	if not levelObj then
+		levelObj = Instance.new("IntValue")
+		levelObj.Name = "TreasureLevel"
+		levelObj.Parent = player
+	end
+	levelObj.Value = level
+
+	local typeObj = player:FindFirstChild("TreasureType")
+	if not typeObj then
+		typeObj = Instance.new("StringValue")
+		typeObj.Name = "TreasureType"
+		typeObj.Parent = player
+	end
+	typeObj.Value = typeName
+
+	local displayObj = player:FindFirstChild("TreasureDisplayName")
+	if not displayObj then
+		displayObj = Instance.new("StringValue")
+		displayObj.Name = "TreasureDisplayName"
+		displayObj.Parent = player
+	end
+	displayObj.Value = displayName
+
+	-- 宝箱モデルの複製とキャラクターへの接続
+	local template = treasureFolder:FindFirstChild(typeName)
+	if template then
+		local clone = template:Clone()
+		clone.Name = "CarriedTreasure"
+		clone.Parent = character
+
+		for _, p in ipairs(clone:GetDescendants()) do
+			if p:IsA("BasePart") then
+				p.Anchored = false
+				p.CanCollide = false
+				p.Massless = true
+			end
+		end
+
+		if not clone.PrimaryPart then
+			clone.PrimaryPart = clone:FindFirstChildWhichIsA("BasePart")
+		end
+
+		if clone.PrimaryPart then
+			clone:PivotTo(head.CFrame * CFrame.new(0, 2, 2))
+
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = clone.PrimaryPart
+			weld.Part1 = head
+			weld.Parent = clone.PrimaryPart
+		end
+	end
+end
+
+-- プレイヤーの手持ち宝箱状態をクリアする処理
+local function clearCarriedTreasure(player)
+	local character = player.Character
+	if character then
+		local carried = character:FindFirstChild("CarriedTreasure")
+		if carried then carried:Destroy() end
+	end
+
+	local tag = player:FindFirstChild("HasTreasure")
+	if tag then tag:Destroy() end
+
+	local typeObj = player:FindFirstChild("TreasureType")
+	if typeObj then typeObj:Destroy() end
+
+	local levelObj = player:FindFirstChild("TreasureLevel")
+	if levelObj then levelObj:Destroy() end
+
+	local displayObj = player:FindFirstChild("TreasureDisplayName")
+	if displayObj then displayObj:Destroy() end
+end
+
 -- プレイヤーのCarryLevelに応じたUI更新処理
 local function updateClientCarryUI(player)
 	local carryLevelObj = player:FindFirstChild("CarryLevel")
@@ -167,53 +263,59 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 		return
 	end
 
-	local equippedTool = character:FindFirstChildOfClass("Tool")
+	local carried = character:FindFirstChild("CarriedTreasure")
 	local toolInSlot = carryStorage:FindFirstChild("Slot"..slotIndex)
 
-	if equippedTool then
+	if carried then
 		-- 格納処理 (Treasureをもっているときは格納)
-		-- スロットが空、もしくはすでにアイテムがある場合は入れ替え
-		if toolInSlot then
-			-- 入れ替え (Swap) 処理
-			local toolToStore = equippedTool:Clone()
-			toolToStore:SetAttribute("OriginalName", equippedTool.Name)
-			toolToStore.Name = "Slot"..slotIndex
+		local typeObj = player:FindFirstChild("TreasureType")
+		local levelObj = player:FindFirstChild("TreasureLevel")
+		local displayObj = player:FindFirstChild("TreasureDisplayName")
 
-			local itemToRetrieve = toolInSlot
-			itemToRetrieve.Name = itemToRetrieve:GetAttribute("OriginalName") or "Tool"
-			itemToRetrieve.Parent = character
+		if typeObj and levelObj then
+			local typeName = typeObj.Value
+			local level = levelObj.Value
+			local displayName = displayObj and displayObj.Value or typeName
 
-			equippedTool:Destroy()
-			toolToStore.Parent = carryStorage
+			if toolInSlot then
+				-- スロットがすでに埋まっている場合はスワップ（入れ替え）
+				local oldType = toolInSlot:GetAttribute("Type") or toolInSlot.Name
+				local oldLevel = toolInSlot:GetAttribute("Level") or 1
+				local oldDisplayName = toolInSlot:GetAttribute("OriginalName") or oldType
 
-			-- キャラクターの前面に配置
-			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-			if humanoidRootPart then
-				itemToRetrieve:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
+				-- スロットの情報を新しい宝箱に上書き
+				toolInSlot:SetAttribute("Type", typeName)
+				toolInSlot:SetAttribute("Level", level)
+				toolInSlot:SetAttribute("OriginalName", displayName)
+
+				-- スロットに入っていた古い宝箱をプレイヤーに持たせる
+				equipTreasure(player, oldType, oldLevel, oldDisplayName)
+			else
+				-- スロットが空の場合は新規格納
+				local slotFolder = Instance.new("Folder")
+				slotFolder.Name = "Slot"..slotIndex
+				slotFolder:SetAttribute("Type", typeName)
+				slotFolder:SetAttribute("Level", level)
+				slotFolder:SetAttribute("OriginalName", displayName)
+				slotFolder.Parent = carryStorage
+
+				-- プレイヤーの手持ち状態を消去
+				clearCarriedTreasure(player)
 			end
-		else
-			-- 普通に格納
-			local toolToStore = equippedTool:Clone()
-			toolToStore:SetAttribute("OriginalName", equippedTool.Name)
-			toolToStore.Name = "Slot"..slotIndex
-			toolToStore.Parent = carryStorage
-
-			equippedTool:Destroy()
+			updateClientCarryUI(player)
 		end
-		updateClientCarryUI(player)
 	else
 		-- 回収処理 (Slotに格納されていてTreasureを持っていない場合は回収)
 		if toolInSlot then
-			local itemToRetrieve = toolInSlot
-			itemToRetrieve.Name = itemToRetrieve:GetAttribute("OriginalName") or "Tool"
-			itemToRetrieve.Parent = character -- キャラクターの子として配置（装備）
+			local oldType = toolInSlot:GetAttribute("Type") or toolInSlot.Name
+			local oldLevel = toolInSlot:GetAttribute("Level") or 1
+			local oldDisplayName = toolInSlot:GetAttribute("OriginalName") or oldType
 
-			-- 必要に応じて、アイテムの位置を調整
-			local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-			if humanoidRootPart then
-				itemToRetrieve:PivotTo(humanoidRootPart.CFrame * CFrame.new(0, 0, -3))
-			end
-			
+			-- スロットから削除
+			toolInSlot:Destroy()
+
+			-- アイテムを装備
+			equipTreasure(player, oldType, oldLevel, oldDisplayName)
 			updateClientCarryUI(player)
 		end
 	end
