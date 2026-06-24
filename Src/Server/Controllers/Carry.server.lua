@@ -215,7 +215,14 @@ Players.PlayerAdded:Connect(function(player)
 		end)
 	end
 
-	updateClientCarryUI(player) -- UI更新をトリガー
+	-- データのロード完了を待ってからUIをトリガー
+	task.spawn(function()
+		if not player:GetAttribute("DataLoaded") then
+			player:GetAttributeChangedSignal("DataLoaded"):Wait()
+		end
+		updateClientCarryUI(player)
+	end)
+
 	setupCarryUpgradePad() -- CarryUpgradePad をセットアップ
 
 	-- CharacterAddedイベントでUI更新などをトリガー
@@ -233,7 +240,14 @@ for _, player in ipairs(Players:GetPlayers()) do
 			updateClientCarryUI(player)
 		end)
 	end
-	updateClientCarryUI(player) -- UI更新をトリガー
+	
+	task.spawn(function()
+		if not player:GetAttribute("DataLoaded") then
+			player:GetAttributeChangedSignal("DataLoaded"):Wait()
+		end
+		updateClientCarryUI(player)
+	end)
+
 	setupCarryUpgradePad()
 end
 

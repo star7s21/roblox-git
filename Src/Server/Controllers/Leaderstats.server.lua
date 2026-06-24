@@ -188,6 +188,24 @@ Players.PlayerAdded:Connect(function(player)
 		upgradeCost.Value = data.UpgradeCost or 50
 		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
 		carryLevel.Value = data.CarryLevel or 1
+
+		-- Carryスロットの復元
+		local carryStorage = player:FindFirstChild("CarryStorage")
+		if not carryStorage then
+			carryStorage = Instance.new("Folder")
+			carryStorage.Name = "CarryStorage"
+			carryStorage.Parent = player
+		end
+		if data.CarryItems then
+			for _, item in ipairs(data.CarryItems) do
+				local slotFolder = Instance.new("Folder")
+				slotFolder.Name = item.slot
+				slotFolder:SetAttribute("Type", item.type)
+				slotFolder:SetAttribute("Level", item.level or 1)
+				slotFolder:SetAttribute("OriginalName", item.displayName or item.type)
+				slotFolder.Parent = carryStorage
+			end
+		end
 	end
 
 	player:SetAttribute("DataLoaded", true)
@@ -254,6 +272,22 @@ local function save(player)
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 500,
 		CarryLevel = player:FindFirstChild("CarryLevel") and player.CarryLevel.Value or 1,
+
+		CarryItems = (function()
+			local items = {}
+			local carryStorage = player:FindFirstChild("CarryStorage")
+			if carryStorage then
+				for _, slot in ipairs(carryStorage:GetChildren()) do
+					table.insert(items, {
+						slot = slot.Name,
+						type = slot:GetAttribute("Type") or slot.Name,
+						level = slot:GetAttribute("Level") or 1,
+						displayName = slot:GetAttribute("OriginalName") or ""
+					})
+				end
+			end
+			return items
+		end)(),
 
 		BaseItems = base and collectBaseData(base) or {}
 	}
