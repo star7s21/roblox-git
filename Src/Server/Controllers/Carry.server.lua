@@ -347,11 +347,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
--- 他の必要なサービスやモジュールをここでロード
--- local MarketplaceManager = require(game.ServerStorage.Services.MarketplaceManager) -- 例
--- local BaseUpgradeService = require(game.ServerStorage.Services.BaseUpgradeService) -- 例
-local TreasureConfig = require(game.ServerStorage.Services.TreasureConfig) -- 例: 宝物の設定から情報を取得するために使用
-local MarketplaceConfig = require(game.ServerStorage.Services.MarketplaceConfig) -- 例: コスト計算などに使用
 
 local carryData = {} -- 各プレイヤーのキャリー関連データを格納するテーブル
 local carryUpgradeCostTable = {} -- CarryUpgradeのコストテーブル（例）
