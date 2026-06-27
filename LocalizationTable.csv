@@ -58,3 +58,12 @@ Limit: ON",,PlayerGui.MenuUI.Frame.SpeedButton.Text,"スピード：{number1}
 {number1}{text1} コイン",User,,,,
 ,,Upgrade Jump,,PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText,ジャンプ力レベルアップ,User,,,,
 ,,Upgrade Speed,,PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText,速度レベルアップ,User,,,,
+,,Carry Level,,PlayerGui.AdminGui.AdminPanel.Frame.TextLabel,運搬レベル,User,,,,
+,,Upgrade Carry,,PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText,運搬レベルアップ,User,,,,
+,,❌ Max Level,,PlayerGui.ProximityPrompts.Prompt.Frame.TextFrame.ActionText,❌ 最大レベル,User,,,,
+,,"Slot {number1}
+Empty",,PlayerGui.CarryStorageGui.Frame.TextButton,"スロット {number1}
+空っぽ",User,,,,
+,,"Slot {number1}
+{text1}",,PlayerGui.CarryStorageGui.Frame.TextButton,"スロット {number1}
+{text1}",User,,,,
