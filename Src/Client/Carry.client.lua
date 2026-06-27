@@ -85,8 +85,11 @@ local function updateCarryStorageUI(slotContents, carryUpgradeLevel, carryUpgrad
 	upgradeBtn.TextColor3 = Color3.new(1, 1, 1)
 	upgradeBtn.Parent = frame
 
-	local upgradeText = "Carry Upgrade\nLevel: " .. currentCarryUpgradeLevel .. "\nCost: " .. currentCarryUpgradeCost
+	local upgradeText = string.format("Carry Upgrade\nLevel: %d\nCost: %d", currentCarryUpgradeLevel, currentCarryUpgradeCost)
 	upgradeBtn.Text = upgradeText
+	
+	-- コストが0より大きい場合（アップグレード可能）、または最大レベルでない場合は緑色に、それ以外は灰色にする
+	-- (CarryUpgradeCostが0の場合は、最大レベル到達などの理由でアップグレード不可とみなす)
 	if currentCarryUpgradeCost > 0 then
 		upgradeBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0) -- アップグレード可能
 	else
@@ -108,6 +111,12 @@ carryRemote.OnClientEvent:Connect(function(action, data)
 		local carryUpgradeLevel = data.CarryUpgradeLevel
 		local carryUpgradeCost = data.CarryUpgradeCost
 		updateCarryStorageUI(slotContents, carryUpgradeLevel, carryUpgradeCost)
+	elseif action == "NotifyUpgradeSuccess" then
+		-- アップグレード成功時のフィードバック（必要であれば追加）
+		print("Carry Upgrade successful!")
+	elseif action == "NotifyUpgradeFail" then
+		-- アップグレード失敗時のフィードバック（必要であれば追加）
+		print("Carry Upgrade failed!")
 	end
 end)
 
