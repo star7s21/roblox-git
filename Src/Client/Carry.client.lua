@@ -16,7 +16,8 @@ local function updateCarryStorageUI(slotContents, carryUpgradeLevel, carryUpgrad
 		existingGui:Destroy()
 	end
 	
-	local slotCount = #slotContents
+	-- slotContentsがnilでないことを確認してから長さを取得
+	local slotCount = slotContents and #slotContents or 0
 	-- slotCountが0以下の場合はUIを表示しない
 	if slotCount <= 0 and carryUpgradeLevel == 0 then
 		return
