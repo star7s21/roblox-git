@@ -241,8 +241,6 @@ Players.PlayerAdded:Connect(function(player)
 		updateClientCarryUI(player)
 	end)
 
-	setupCarryUpgradePad() -- CarryUpgradePad をセットアップ
-
 	-- CharacterAddedイベントでUI更新などをトリガー
 	player.CharacterAdded:Connect(function(character)
 		updateClientCarryUI(player) -- UI更新をトリガー
@@ -265,9 +263,9 @@ for _, player in ipairs(Players:GetPlayers()) do
 		end
 		updateClientCarryUI(player)
 	end)
-
-	setupCarryUpgradePad()
 end
+
+setupCarryUpgradePad() -- グローバルで1回だけセットアップ
 
 -- スロットタップ時の格納・回収イベントハンドリング
 carryRemote.OnServerEvent:Connect(function(player, slotIndex)

@@ -192,7 +192,7 @@ Players.PlayerAdded:Connect(function(player)
 		upgradeCost.Value = data.UpgradeCost or 50
 		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
 		carryLevel.Value = data.CarryLevel or 1
-		carryUpgradeCost.Value = data.carryUpgradeCost or 50000
+		carryUpgradeCost.Value = data.CarryUpgradeCost or 50000
 
 		-- Carryスロットの復元
 		local carryStorage = player:FindFirstChild("CarryStorage")
