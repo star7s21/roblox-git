@@ -147,6 +147,10 @@ Players.PlayerAdded:Connect(function(player)
 	carryLevel.Name = "CarryLevel"
 	carryLevel.Value = 1
 
+	local carryUpgradeCost = Instance.new("IntValue", player)
+	carryUpgradeCost.Name = "CarryUpgradeCost"
+	carryUpgradeCost.Value = 50000
+
 	-- =========================
 	-- LOAD
 	-- =========================
@@ -188,6 +192,7 @@ Players.PlayerAdded:Connect(function(player)
 		upgradeCost.Value = data.UpgradeCost or 50
 		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
 		carryLevel.Value = data.CarryLevel or 1
+		carryUpgradeCost.Value = data.carryUpgradeCost or 50000
 
 		-- Carryスロットの復元
 		local carryStorage = player:FindFirstChild("CarryStorage")
@@ -272,6 +277,7 @@ local function save(player)
 		UpgradeCost = player:FindFirstChild("UpgradeCost") and player.UpgradeCost.Value or 50,
 		JumpUpgradeCost = player:FindFirstChild("JumpUpgradeCost") and player.JumpUpgradeCost.Value or 500,
 		CarryLevel = player:FindFirstChild("CarryLevel") and player.CarryLevel.Value or 1,
+		CarryUpgradeCost = player:FindFirstChild("CarryUpgradeCost") and player.CarryUpgradeCost.Value or 50000,
 
 		CarryItems = (function()
 			local items = {}

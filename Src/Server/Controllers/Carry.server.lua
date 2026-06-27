@@ -1,4 +1,5 @@
 local MAX_CARRY_LEVEL = 5
+local baseCost = 50000
 local carryLevelIncrease = 1
 local carryDebounce = {}
 
@@ -152,6 +153,16 @@ local function initializePlayerCarry(player)
 	end
 end
 
+
+-- =========================
+-- コスト取得
+-- =========================
+local function getCost(player)
+	local costValue = player:WaitForChild("CarryUpgradeCost", 10)
+	return costValue and costValue.Value or baseCost
+end
+
+
 -- CarryUpgrade Pad の処理
 local function setupCarryUpgradePad()
 	local carryUpgradePad = workspace:FindFirstChild("CarryUpgrade")
@@ -195,6 +206,13 @@ local function setupCarryUpgradePad()
 		-- CarryLevelを増加させる
 		if carryLevelObj then
 			carryLevelObj.Value = currentCarryLevel + carryLevelIncrease
+		end
+		
+		-- コスト更新
+		local currentCost = getCost(player)
+		local costValue = player:FindFirstChild("CarryUpgradeCost")
+		if costValue then
+			costValue.Value = math.floor(currentCost * 100.0)
 		end
 
 		task.delay(0.2, function()
@@ -334,6 +352,7 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 		end
 	end
 end)
+
 
 -- =========================
 -- クリーンアップ

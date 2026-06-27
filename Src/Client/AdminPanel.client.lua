@@ -37,9 +37,9 @@ gearButton.Parent = screenGui
 -- 管理パネル
 local panel = Instance.new("Frame")
 panel.Name = "AdminPanel"
-panel.Size = UDim2.new(0, 200, 0, 210)
+panel.Size = UDim2.new(0, 200, 0, 280)
 panel.AnchorPoint = Vector2.new(1, 0)
-panel.Position = UDim2.new(1, -10, 0, 60)
+panel.Position = UDim2.new(1, -50, 0, 10)
 panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 panel.Visible = false
 panel.Parent = screenGui

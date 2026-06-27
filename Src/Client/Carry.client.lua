@@ -1,6 +1,6 @@
-local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
+local player = game.Players.LocalPlayer
 
 local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
 local playerGui = player:WaitForChild("PlayerGui")
@@ -78,11 +78,30 @@ carryRemote.OnClientEvent:Connect(function(action, slotContents)
 	end
 end)
 
--- 初期化およびキャラクターロード時のUI更新
--- プレイヤー参加時にサーバーから初期スロット数が通知されるのを待つ
--- player.CharacterAdded:Connect(function(character)
--- 	-- キャラクターロード時にサーバーからUI更新情報が送られてくるはずなので、ここでは特別な処理は不要
--- end)
-
 -- ゲーム開始時にサーバーにUI更新を要求
 carryRemote:FireServer("RequestUIUpdate")
+
+local Utils = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Utils"))
+local formatNumber = Utils.formatNumber
+
+local function updatePrompt(prompt)
+	local costValue = player:FindFirstChild("CarryUpgradeCost")
+	local cost = costValue and costValue.Value or 500
+	prompt.ObjectText = "Coins: " .. formatNumber(cost)
+end
+
+ProximityPromptService.PromptShown:Connect(function(prompt)
+	if prompt.Parent and prompt.Parent.Name == "CarryUpgrade" then
+		updatePrompt(prompt)
+	end
+end)
+
+-- コスト変更時は「表示中のpromptだけ更新」
+local costValue = player:WaitForChild("CarryUpgradeCost")
+
+costValue:GetPropertyChangedSignal("Value"):Connect(function()
+	local prompt = workspace.CarryUpgrade:FindFirstChildOfClass("ProximityPrompt")
+	if prompt then
+		updatePrompt(prompt)
+	end
+end)
