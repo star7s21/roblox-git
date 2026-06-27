@@ -6,8 +6,10 @@ local carryRemote = ReplicatedStorage:WaitForChild("CarryRemote")
 local playerGui = player:WaitForChild("PlayerGui")
 
 local currentSlotCount = 0 -- 現在表示されているスロット数
+local currentCarryUpgradeLevel = 0 -- 現在のCarryUpgradeレベル
+local currentCarryUpgradeCost = 0 -- 現在のCarryUpgradeコスト
 
-local function updateCarryStorageUI(slotContents)
+local function updateCarryStorageUI(slotContents, carryUpgradeLevel, carryUpgradeCost)
 	-- 既存のUIがあれば削除
 	local existingGui = playerGui:FindFirstChild("CarryStorageGui")
 	if existingGui then
@@ -16,11 +18,13 @@ local function updateCarryStorageUI(slotContents)
 	
 	local slotCount = #slotContents
 	-- slotCountが0以下の場合はUIを表示しない
-	if slotCount <= 0 then
+	if slotCount <= 0 and carryUpgradeLevel == 0 then
 		return
 	end
 
 	currentSlotCount = slotCount -- 現在のスロット数を更新
+	currentCarryUpgradeLevel = carryUpgradeLevel or 0
+	currentCarryUpgradeCost = carryUpgradeCost or 0
 
 	local screenGui = Instance.new("ScreenGui")
 	screenGui.Name = "CarryStorageGui"
@@ -29,7 +33,8 @@ local function updateCarryStorageUI(slotContents)
 
 	local frame = Instance.new("Frame")
 	-- 横並びにするため、幅をスロット数に合わせてスケール
-	frame.Size = UDim2.new(0, 65 * slotCount, 0, 50)
+	-- CarryUpgradeUIのためのスペースも考慮
+	frame.Size = UDim2.new(0, (65 * slotCount) + 100, 0, 50) -- スロット+アップグレードUIの幅
 	frame.AnchorPoint = Vector2.new(0.5, 1)
 	frame.Position = UDim2.new(0.5, 0, 1, -10) -- 画面下部中央に配置
 	frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -66,23 +71,45 @@ local function updateCarryStorageUI(slotContents)
 
 		-- タップ時の格納・回収リクエスト
 		slotBtn.MouseButton1Click:Connect(function()
-			carryRemote:FireServer(i) -- slotIndex をサーバーに送信
+			carryRemote:FireServer("StoreOrRetrieve", i) -- slotIndex をサーバーに送信
 		end)
 	end
+
+	-- CarryUpgrade UIの作成
+	local upgradeBtn = Instance.new("TextButton")
+	upgradeBtn.Size = UDim2.new(0, 100, 0, 40)
+	upgradeBtn.BorderSizePixel = 1
+	upgradeBtn.LayoutOrder = slotCount + 1 -- スロットの次に追加
+	upgradeBtn.TextSize = 10
+	upgradeBtn.TextWrapped = true
+	upgradeBtn.TextColor3 = Color3.new(1, 1, 1)
+	upgradeBtn.Parent = frame
+
+	local upgradeText = "Carry Upgrade\nLevel: " .. currentCarryUpgradeLevel .. "\nCost: " .. currentCarryUpgradeCost
+	upgradeBtn.Text = upgradeText
+	if currentCarryUpgradeCost > 0 then
+		upgradeBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0) -- アップグレード可能
+	else
+		upgradeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) -- アップグレード不可（最大レベルなど）
+	end
+
+	-- タップ時のアップグレードリクエスト
+	upgradeBtn.MouseButton1Click:Connect(function()
+		if currentCarryUpgradeCost > 0 then
+			carryRemote:FireServer("UpgradeCarry") -- アップグレードをリクエスト
+		end
+	end)
 end
 
 -- サーバーからのUI更新通知を受け取る
-carryRemote.OnClientEvent:Connect(function(action, slotContents)
+carryRemote.OnClientEvent:Connect(function(action, data)
 	if action == "UpdateUI" then
-		updateCarryStorageUI(slotContents)
+		local slotContents = data.Slots
+		local carryUpgradeLevel = data.CarryUpgradeLevel
+		local carryUpgradeCost = data.CarryUpgradeCost
+		updateCarryStorageUI(slotContents, carryUpgradeLevel, carryUpgradeCost)
 	end
 end)
-
--- 初期化およびキャラクターロード時のUI更新
--- プレイヤー参加時にサーバーから初期スロット数が通知されるのを待つ
--- player.CharacterAdded:Connect(function(character)
--- 	-- キャラクターロード時にサーバーからUI更新情報が送られてくるはずなので、ここでは特別な処理は不要
--- end)
 
 -- ゲーム開始時にサーバーにUI更新を要求
 carryRemote:FireServer("RequestUIUpdate")
