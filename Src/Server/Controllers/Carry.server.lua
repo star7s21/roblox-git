@@ -159,7 +159,13 @@ end
 -- =========================
 local function getCost(player)
 	local costValue = player:WaitForChild("CarryUpgradeCost", 10)
-	return costValue and costValue.Value or baseCost
+	if costValue then
+		if costValue.Value <= 0 then
+			costValue.Value = baseCost
+		end
+		return costValue.Value
+	end
+	return baseCost
 end
 
 

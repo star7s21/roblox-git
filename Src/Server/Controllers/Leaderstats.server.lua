@@ -189,10 +189,11 @@ Players.PlayerAdded:Connect(function(player)
 			jump.Value = data.Jump
 		end
 
-		upgradeCost.Value = data.UpgradeCost or 50
-		jumpUpgradeCost.Value = data.JumpUpgradeCost or 500
+		-- 各アップグレードコストが0以下にならないように保護してロード
+		upgradeCost.Value = (data.UpgradeCost and data.UpgradeCost > 0) and data.UpgradeCost or 50
+		jumpUpgradeCost.Value = (data.JumpUpgradeCost and data.JumpUpgradeCost > 0) and data.JumpUpgradeCost or 500
 		carryLevel.Value = data.CarryLevel or 1
-		carryUpgradeCost.Value = data.CarryUpgradeCost or 50000
+		carryUpgradeCost.Value = (data.CarryUpgradeCost and data.CarryUpgradeCost > 0) and data.CarryUpgradeCost or 50000
 
 		-- Carryスロットの復元
 		local carryStorage = player:FindFirstChild("CarryStorage")
