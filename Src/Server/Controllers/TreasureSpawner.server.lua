@@ -186,11 +186,23 @@ local function spawnTreasure(position, level)
 	local modelLevel = getRandomModelLevel(level)
 	treasure:SetAttribute("Level", modelLevel)
 
-	-- 取得・破壊時に一定時間後リスポーン
+	-- 取得時に一定時間後リスポーン
 	treasure.Destroying:Connect(function()
-		local settings = SPAWN_SETTINGS[level] or { minRespawnTime = 30, maxRespawnTime = 60 }
-		local respawnDelay = math.random(settings.minRespawnTime, settings.maxRespawnTime)
-		
+		-- プレイヤーが取得した場合のみリスポーン
+		if not treasure:GetAttribute("Collected") then
+			return
+		end
+
+		local settings = SPAWN_SETTINGS[level] or {
+			minRespawnTime = 30,
+			maxRespawnTime = 60,
+		}
+
+		local respawnDelay = math.random(
+			settings.minRespawnTime,
+			settings.maxRespawnTime
+		)
+
 		task.delay(respawnDelay, function()
 			local newPosition = getRandomPositionInArea(level)
 			spawnTreasure(newPosition, level)

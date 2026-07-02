@@ -82,6 +82,7 @@ function module.setupTreasure(treasure)
 			end
 		end
 
+		treasure:SetAttribute("Collected", true)
 		treasure:Destroy()
 	end)
 end
