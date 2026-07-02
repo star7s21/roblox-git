@@ -51,9 +51,34 @@ local LEVEL_RANGES = {
     },
 }
 
+-- エリアごとのスポーン・リスポーン詳細設定
+local SPAWN_SETTINGS = {
+	-- [エリアレベル] = { targetCount = 最大維持数, minRespawnTime = 最短リスポーン秒, maxRespawnTime = 最長リスポーン秒 }
+	[1] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[2] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[3] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[4] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[5] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[6] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+	[7] = { targetCount = 10, minRespawnTime = 30, maxRespawnTime = 60 },
+}
+
 -- ==========================================================
 -- ロジック
 -- ==========================================================
+
+-- エリア内のランダムな位置を取得
+local function getRandomPositionInArea(level)
+	local area = workspace:WaitForChild("Level" .. level)
+	local size = area.Size
+	local pos = area.Position
+
+	local x = pos.X + math.random(-size.X / 2, size.X / 2)
+	local z = pos.Z + math.random(-size.Z / 2, size.Z/ 2)
+	local y = pos.Y + size.Y / 2 + 3
+
+	return Vector3.new(x, y, z)
+end
 
 -- エリアレベルからモデルレベルを決定
 local function getRandomModelLevel(areaLevel)
@@ -161,6 +186,17 @@ local function spawnTreasure(position, level)
 	local modelLevel = getRandomModelLevel(level)
 	treasure:SetAttribute("Level", modelLevel)
 
+	-- 取得・破壊時に一定時間後リスポーン
+	treasure.Destroying:Connect(function()
+		local settings = SPAWN_SETTINGS[level] or { minRespawnTime = 30, maxRespawnTime = 60 }
+		local respawnDelay = math.random(settings.minRespawnTime, settings.maxRespawnTime)
+		
+		task.delay(respawnDelay, function()
+			local newPosition = getRandomPositionInArea(level)
+			spawnTreasure(newPosition, level)
+		end)
+	end)
+
 	-- 名前表示
 	if treasure.PrimaryPart then
 		local billboard = Instance.new("BillboardGui")
@@ -188,18 +224,11 @@ local function spawnTreasure(position, level)
 	TreasureModule.setupTreasure(treasure)
 end
 
--- スポーン
+-- 初期スポーン
 for level = 1, 7 do
-	local area = workspace:WaitForChild("Level"..level)
-
-	local size = area.Size
-	local pos = area.Position
-
-	for i = 1, 10 do
-		local x = pos.X + math.random(-size.X/2, size.X/2)
-		local z = pos.Z + math.random(-size.Z/2, size.Z/2)
-		local y = pos.Y + size.Y/2 + 3
-
-		spawnTreasure(Vector3.new(x, y, z), level)
+	local settings = SPAWN_SETTINGS[level] or { targetCount = 10 }
+	for i = 1, settings.targetCount do
+		local pos = getRandomPositionInArea(level)
+		spawnTreasure(pos, level)
 	end
 end
