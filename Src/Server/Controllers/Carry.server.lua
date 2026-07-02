@@ -4,6 +4,8 @@ local carryLevelIncrease = 1
 local carryDebounce = {}
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local MarketplaceManager = require(ServerScriptService.Server.Services.MarketplaceManager)
 local ServerStorage = game:GetService("ServerStorage")
 local Players = game:GetService("Players")
 
@@ -206,16 +208,30 @@ local function setupCarryUpgradePad()
 			return
 		end
 
+		local leaderstats = player:FindFirstChild("leaderstats")
+		if not leaderstats then return end
+		local coins = leaderstats:FindFirstChild("Coins")
+		if not coins then return end
+		local currentCost = getCost(player)
+		if coins.Value < currentCost then
+			carryPrompt.ActionText = "❌ Not Enough Coins"
+			MarketplaceManager.PromptPurchase(player, "Carry")
+			task.delay(1.5, function()
+				carryPrompt.ActionText = "Upgrade Carry"
+			end)
+			return
+		end
+
 		carryDebounce[player] = true
 		carryPrompt.ActionText = "⏳ Wait..."
 
 		-- CarryLevelを増加させる
+		coins.Value = coins.Value - currentCost
 		if carryLevelObj then
 			carryLevelObj.Value = currentCarryLevel + carryLevelIncrease
 		end
 		
 		-- コスト更新
-		local currentCost = getCost(player)
 		local costValue = player:FindFirstChild("CarryUpgradeCost")
 		if costValue then
 			costValue.Value = math.floor(currentCost * 100.0)

@@ -5,6 +5,7 @@ local MarketplaceConfig = {
 		Base = 3602746944,
 		Rebirth = 3602747107,
 		Jump = 3602750251,
+		Carry = 3607756879,
 	}
 }
 
