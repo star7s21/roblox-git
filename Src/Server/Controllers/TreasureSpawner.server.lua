@@ -4,24 +4,92 @@ local config = configModule and configModule.Rarities
 local TreasureModule = require(game:GetService("ServerScriptService").Server.Services.Treasure)
 local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
 
+-- ==========================================================
+-- バランス調整用設定テーブル
+-- ==========================================================
+
+-- エリアのレベルに応じた各レアリティの出現比率（重み）
+local RARITY_WEIGHTS = {
+	[1] = { Common = 80, Rare = 15, Epic = 4.5, Legendary = 0.5 },
+	[2] = { Common = 60, Rare = 25, Epic = 13,   Legendary = 2   },
+	[3] = { Common = 40, Rare = 35, Epic = 20,   Legendary = 5   },
+	[4] = { Common = 25, Rare = 40, Epic = 25,   Legendary = 10  },
+	[5] = { Common = 15, Rare = 35, Epic = 35,   Legendary = 15  },
+	[6] = { Common = 5,  Rare = 25, Epic = 45,   Legendary = 25  },
+	[7] = { Common = 1,  Rare = 14, Epic = 50,   Legendary = 35  },
+}
+
+-- エリアのレベルに応じた、モデルのレベル(Lv)の出現帯と確率（重み）
+local LEVEL_RANGES = {
+	[1] = {
+		{ min = 1,  max = 10, weight = 90 },
+		{ min = 11, max = 20, weight = 10 },
+	},
+	[2] = {
+		{ min = 10, max = 20, weight = 70 },
+		{ min = 21, max = 30, weight = 30 },
+	},
+	[3] = {
+		{ min = 20, max = 30, weight = 70 },
+		{ min = 31, max = 40, weight = 30 },
+	},
+	[4] = {
+		{ min = 30, max = 40, weight = 60 },
+		{ min = 41, max = 50, weight = 40 },
+	},
+	[5] = {
+		{ min = 40, max = 50, weight = 60 },
+		{ min = 51, max = 60, weight = 40 },
+	},
+	[6] = {
+		{ min = 50, max = 60, weight = 50 },
+		{ min = 61, max = 70, weight = 50 },
+	},
+	[7] = {
+		{ min = 50, max = 60, weight = 15 },
+		{ min = 61, max = 70, weight = 85 },
+	}
+}
+
+-- ==========================================================
+-- ロジック
+-- ==========================================================
+
+-- エリアレベルからモデルレベルを決定
+local function getRandomModelLevel(areaLevel)
+	areaLevel = tonumber(areaLevel) or 1
+	local ranges = LEVEL_RANGES[areaLevel] or LEVEL_RANGES[1]
+
+	local total = 0
+	for _, range in ipairs(ranges) do
+		total = total + range.weight
+	end
+
+	local rand = math.random() * total
+	local sum = 0
+	local selectedRange = ranges[1]
+	for _, range in ipairs(ranges) do
+		sum = sum + range.weight
+		if rand <= sum then
+			selectedRange = range
+			break
+		end
+	end
+
+	return math.random(selectedRange.min, selectedRange.max)
+end
+
 -- ランダム
-local function getRandomTreasure(level)
-	level = tonumber(level) or 1
+local function getRandomTreasure(areaLevel)
+	areaLevel = tonumber(areaLevel) or 1
 	local weighted = {}
 
 	if not config then return nil end
 
+	local weightTable = RARITY_WEIGHTS[areaLevel] or RARITY_WEIGHTS[1]
+
 	for _, rarity in ipairs(config) do
-		local weight = rarity.chance or 0
-
-		if rarity.name == "Rare" then
-			weight = weight + (level * 5)
-		elseif rarity.name == "Epic" then
-			weight = weight + (level * 3)
-		elseif rarity.name == "Legendary" then
-			weight = weight + (level * 2)
-		end
-
+		local weight = weightTable[rarity.name] or 0
 		table.insert(weighted, {data = rarity, weight = weight})
 	end
 
@@ -90,7 +158,8 @@ local function spawnTreasure(position, level)
 	end
 
 	-- レベル設定
-	treasure:SetAttribute("Level", level)
+	local modelLevel = getRandomModelLevel(level)
+	treasure:SetAttribute("Level", modelLevel)
 
 	-- 名前表示
 	if treasure.PrimaryPart then
