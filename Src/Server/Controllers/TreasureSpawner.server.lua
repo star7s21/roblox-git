@@ -10,45 +10,45 @@ local treasureFolder = game.ReplicatedStorage:WaitForChild("Treasures")
 
 -- エリアのレベルに応じた各レアリティの出現比率（重み）
 local RARITY_WEIGHTS = {
-	[1] = { Common = 80, Rare = 15, Epic = 4.5, Legendary = 0.5 },
-	[2] = { Common = 60, Rare = 25, Epic = 13,   Legendary = 2   },
-	[3] = { Common = 40, Rare = 35, Epic = 20,   Legendary = 5   },
-	[4] = { Common = 25, Rare = 40, Epic = 25,   Legendary = 10  },
-	[5] = { Common = 15, Rare = 35, Epic = 35,   Legendary = 15  },
-	[6] = { Common = 5,  Rare = 25, Epic = 45,   Legendary = 25  },
-	[7] = { Common = 1,  Rare = 14, Epic = 50,   Legendary = 35  },
+    [1] = { Common = 80, Rare = 15, Epic = 4.5, Legendary = 0.5 },
+    [2] = { Common = 65, Rare = 22, Epic = 11,  Legendary = 2   },
+    [3] = { Common = 50, Rare = 30, Epic = 16,  Legendary = 4   },
+    [4] = { Common = 35, Rare = 35, Epic = 22,  Legendary = 8   },
+    [5] = { Common = 20, Rare = 35, Epic = 30,  Legendary = 15  },
+    [6] = { Common = 10, Rare = 30, Epic = 40,  Legendary = 20  },
+    [7] = { Common = 5,  Rare = 25, Epic = 50,  Legendary = 20  },
 }
 
 -- エリアのレベルに応じた、モデルのレベル(Lv)の出現帯と確率（重み）
 local LEVEL_RANGES = {
-	[1] = {
-		{ min = 1,  max = 10, weight = 90 },
-		{ min = 11, max = 20, weight = 10 },
-	},
-	[2] = {
-		{ min = 10, max = 20, weight = 70 },
-		{ min = 21, max = 30, weight = 30 },
-	},
-	[3] = {
-		{ min = 20, max = 30, weight = 70 },
-		{ min = 31, max = 40, weight = 30 },
-	},
-	[4] = {
-		{ min = 30, max = 40, weight = 60 },
-		{ min = 41, max = 50, weight = 40 },
-	},
-	[5] = {
-		{ min = 40, max = 50, weight = 60 },
-		{ min = 51, max = 60, weight = 40 },
-	},
-	[6] = {
-		{ min = 50, max = 60, weight = 50 },
-		{ min = 61, max = 70, weight = 50 },
-	},
-	[7] = {
-		{ min = 50, max = 60, weight = 15 },
-		{ min = 61, max = 70, weight = 85 },
-	}
+    [1] = {
+        { min = 1,  max = 15, weight = 90 },
+        { min = 16, max = 25, weight = 10 },
+    },
+    [2] = {
+        { min = 10, max = 25, weight = 70 },
+        { min = 26, max = 35, weight = 30 },
+    },
+    [3] = {
+        { min = 20, max = 35, weight = 70 },
+        { min = 36, max = 45, weight = 30 },
+    },
+    [4] = {
+        { min = 30, max = 45, weight = 60 },
+        { min = 46, max = 55, weight = 40 },
+    },
+    [5] = {
+        { min = 40, max = 55, weight = 60 },
+        { min = 56, max = 65, weight = 40 },
+    },
+    [6] = {
+        { min = 50, max = 65, weight = 50 },
+        { min = 66, max = 75, weight = 50 },
+    },
+    [7] = {
+        { min = 60, max = 75, weight = 20 },
+        { min = 76, max = 100, weight = 80 },
+    },
 }
 
 -- ==========================================================
