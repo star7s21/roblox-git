@@ -13,6 +13,18 @@ TreasureTranslation.Translations = {
 		["67"] = "67",
 		["Monster"] = "モンスター",
 		["Dog"] = "イヌ",
+		["Cat"] = "ネコ",
+		["Puppy"] = "子イヌ",
+		["Shark"] = "サメ",
+		["Cow"] = "牛",
+		["Bunny"] = "うさぎ",
+		["Frog"] = "カエル",
+		["Deamon"] = "デーモン",
+		["Dragon"] = "ドラゴン",
+		["Phoenix"] = "フェニックス",
+		["Axolotl"] = "ウーパールーパー",
+		["BlueAxolotl"] = "青ウーパールーパー",
+		["Devil"] = "悪魔",
 	},
 	["en-us"] = {
 		-- Rarities
@@ -26,6 +38,18 @@ TreasureTranslation.Translations = {
 		["67"] = "67",
 		["Monster"] = "Monster",
 		["Dog"] = "Dog",
+		["Cat"] = "Cat",
+		["Puppy"] = "Puppy",
+		["Shark"] = "Shark",
+		["Cow"] = "Cow",
+		["Bunny"] = "Bunny",
+		["Frog"] = "Frog",
+		["Deamon"] = "Deamon",
+		["Dragon"] = "Dragon",
+		["Phoenix"] = "Phoenix",
+		["Axolotl"] = "Axolotl",
+		["BlueAxolotl"] = "BlueAxolotl",
+		["Devil"] = "Devil",
 	}
 }
 

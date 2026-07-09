@@ -16,6 +16,9 @@ TreasureConfig.Rarities = {
 		items = {
 			{ name = "Bear", model = "Bear" },
 			{ name = "Chair", model = "Chair" },
+			{ name = "Cat", model = "Cat" },
+			{ name = "Puppy", model = "Puppy" },
+			{ name = "Shark", model = "Shark" },
 		}
 	},
 	{ 
@@ -28,7 +31,10 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(0,170,255),
 		items = {
-			{ name = "67", model = "67" }
+			{ name = "67", model = "67" },
+			{ name = "Cow", model = "Cow" },
+			{ name = "Bunny", model = "Bunny" },
+			{ name = "Frog", model = "Frog" },
 		}
 	},
 	{ 
@@ -41,7 +47,10 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(170,0,255),
 		items = {
-			{ name = "Monster", model = "Monster" }
+			{ name = "Monster", model = "Monster" },
+			{ name = "Deamon", model = "Deamon" },
+			{ name = "Dragon", model = "Dragon" },
+			{ name = "Phoenix", model = "Phoenix" },
 		}
 	},
 	{ 
@@ -54,7 +63,10 @@ TreasureConfig.Rarities = {
 		levelMultiplier = 1.2, 
 		color = Color3.fromRGB(255,170,0),
 		items = {
-			{ name = "Dog", model = "Dog" }
+			{ name = "Dog", model = "Dog" },
+			{ name = "Axolotl", model = "Axolotl" },
+			{ name = "BlueAxolotl", model = "BlueAxolotl" },
+			{ name = "Devil", model = "Devil" },
 		}
 	},
 }

@@ -5,7 +5,8 @@ local Players = game:GetService("Players")
 -- 管理者のUserIdリスト
 local ADMIN_IDS = {
 	3994115949,
-	10688061205
+	10688061205,
+	10986524710
 }
 
 local ALLOWED_STATS = {

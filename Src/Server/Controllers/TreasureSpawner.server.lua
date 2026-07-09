@@ -175,13 +175,6 @@ local function spawnTreasure(position, level)
 		treasure:PivotTo(CFrame.new(position))
 	end
 
-	-- 色
-	for _, part in ipairs(treasure:GetDescendants()) do
-		if part:IsA("BasePart") then
-			part.Color = rarity.color
-		end
-	end
-
 	-- レベル設定
 	local modelLevel = getRandomModelLevel(level)
 	treasure:SetAttribute("Level", modelLevel)
