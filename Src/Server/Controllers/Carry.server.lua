@@ -315,10 +315,10 @@ carryRemote.OnServerEvent:Connect(function(player, slotIndex)
 		return
 	end
 
-	local carried = character:FindFirstChild("CarriedTreasure")
+	local hasTreasure = player:FindFirstChild("HasTreasure") ~= nil
 	local toolInSlot = carryStorage:FindFirstChild("Slot"..slotIndex)
 
-	if carried then
+	if hasTreasure then
 		-- 格納処理 (Treasureをもっているときは格納)
 		local typeObj = player:FindFirstChild("TreasureType")
 		local levelObj = player:FindFirstChild("TreasureLevel")
