@@ -28,28 +28,40 @@ function module.setupTreasure(treasure)
 
 		local level = treasure:GetAttribute("Level") or 1
 
-		-- 状態
-		local tag = Instance.new("BoolValue")
-		tag.Name = "HasTreasure"
-		tag.Parent = player
-
 		-- Picked属性をtrueにする（他のプレイヤーが拾えないようにする）
 		treasure:SetAttribute("Picked", true)
 
-		local storedValue = Instance.new("IntValue")
-		storedValue.Name = "TreasureLevel"
+		-- 状態
+		local tag = player:FindFirstChild("HasTreasure")
+		if not tag then
+			tag = Instance.new("BoolValue")
+			tag.Name = "HasTreasure"
+			tag.Parent = player
+		end
+
+		local storedValue = player:FindFirstChild("TreasureLevel")
+		if not storedValue then
+			storedValue = Instance.new("IntValue")
+			storedValue.Name = "TreasureLevel"
+			storedValue.Parent = player
+		end
 		storedValue.Value = level
-		storedValue.Parent = player
 
-		local typeValue = Instance.new("StringValue")
-		typeValue.Name = "TreasureType"
+		local typeValue = player:FindFirstChild("TreasureType")
+		if not typeValue then
+			typeValue = Instance.new("StringValue")
+			typeValue.Name = "TreasureType"
+			typeValue.Parent = player
+		end
 		typeValue.Value = treasure:GetAttribute("Model") or treasure.Name
-		typeValue.Parent = player
 
-		local displayNameValue = Instance.new("StringValue")
-		displayNameValue.Name = "TreasureDisplayName"
+		local displayNameValue = player:FindFirstChild("TreasureDisplayName")
+		if not displayNameValue then
+			displayNameValue = Instance.new("StringValue")
+			displayNameValue.Name = "TreasureDisplayName"
+			displayNameValue.Parent = player
+		end
 		displayNameValue.Value = TreasureConfig.GetLocalizedDisplayName(treasure:GetAttribute("Model") or treasure.Name, player)
-		displayNameValue.Parent = player
 
 		-- 見た目
 		local character = player.Character
